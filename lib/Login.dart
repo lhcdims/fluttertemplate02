@@ -3,6 +3,7 @@
 // Import Flutter Darts
 import 'package:flutter/material.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
+import "package:threading/threading.dart";
 import 'dart:convert';
 import 'dart:async';
 
@@ -13,7 +14,6 @@ import 'Home.dart';
 import 'LangStrings.dart';
 import 'SettingsMain.dart';
 import 'tmpSettings.dart';
-
 
 // Login Page
 class ClsLogin extends StatefulWidget {
@@ -26,8 +26,6 @@ class _ClsLoginState extends State<ClsLogin> {
 
   static String strErrMessage = 'Error';
 
-  bool bolLoading = false;
-
   @override
   initState() {
     super.initState();
@@ -35,129 +33,189 @@ class _ClsLoginState extends State<ClsLogin> {
   }
 
   void funLoginPressed() {
+    // Reset login result
+    gv.aryLoginResult = [];
+
     // Show Loading
     setState(() {
-      bolLoading = true;
-      gv.bolBottomLoading = true;
+      gv.bolLoading = true;
     });
 
     // Send to server that client wants to login
     gv.socket.emit('LoginToServer', [ctlUserID.text, ctlUserPW.text]);
 
+    // Start Login Time in ms
+    gv.timLogin = DateTime.now().millisecondsSinceEpoch;
 
-    //Simulate a service call
-    print('submittingo backend...');
-    new Future.delayed(new Duration(seconds: 4), () {
-      setState(() {
-        bolLoading = false;
-        gv.bolBottomLoading = false;
-      });
+    new Future.delayed(new Duration(seconds: 1), () {
+      while (gv.bolLoading) {
+        // Use string to check if it is array
+        if (gv.aryLoginResult.toString() == '[]') {
+          // this means the server didnt return any value
+          if (DateTime.now().millisecondsSinceEpoch - gv.timLogin > 5000) {
+            gv.bolLoading = false;
+            print('Login Fail');
+            setState(() {
+              gv.bolLoading = false;
+            });
+            showAlert(context, 'Fail', 'Login Fail.');
+          } else {
+            gv.bolLoading = true;
+            setState(() {
+              gv.bolLoading = true;
+            });
+          }
+        } else {
+          // this means that server has returned some values
+          if (gv.aryLoginResult[0] == '0000') {
+            gv.bolLoading = false;
+            print('Login Success');
+            // Hide Loading
+            setState(() {
+              gv.bolLoading = false;
+            });
+            // Show Login success
+            showAlert(context, 'Success', 'Login Success.');
+            // Do other things
+
+          } else if (gv.aryLoginResult[0] == '1000') {
+            gv.bolLoading = false;
+            print('Login Fail');
+            // Hide Loading
+            setState(() {
+              gv.bolLoading = false;
+            });
+            // Show Login success
+            showAlert(context, 'Fail', 'Login Fail.');
+            // Do other things
+
+          } else {
+            gv.bolLoading = true;
+            setState(() {
+              gv.bolLoading = true;
+            });
+          }
+        }
+      }
     });
   }
 
-  final ctlUserID = TextEditingController();
-  final ctlUserPW = TextEditingController();
+        void showAlert(BuildContext context, strTitle, strContent)
+    {
+      showDialog(
+          context: context,
+          builder: (context) =>
+              AlertDialog(
+                title: Text(strTitle),
+                content: Text(strContent),
+              )
+      );
+    }
 
-  Widget Body() {
-    return Center(
-      child: Container(
-        color: Colors.white,
-        height: sv.dblBodyHeight,
-        width: sv.dblScreenWidth,
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-              Text(' '),
-              Text(strErrMessage),
-              Text(' '),
-              Row(
-                children: <Widget>[
-                  Text(gv.Space(sv.gintSpaceTextField)),
-                  Expanded(
-                    child: TextFormField(
-                      controller: ctlUserID,
-                      keyboardType: TextInputType.text,
-                      autofocus: false,
-                      decoration: InputDecoration(
-                        hintText: ls.gs('UserID'),
-                        contentPadding:
-                            EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
-                        border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(32.0)),
+
+    final ctlUserID = TextEditingController();
+    final ctlUserPW = TextEditingController();
+
+    Widget Body() {
+      return Center(
+        child: Container(
+          color: Colors.white,
+          height: sv.dblBodyHeight,
+          width: sv.dblScreenWidth,
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: <Widget>[
+                Text(' '),
+                Text(strErrMessage),
+                Text(' '),
+                Row(
+                  children: <Widget>[
+                    Text(gv.Space(sv.gintSpaceTextField)),
+                    Expanded(
+                      child: TextFormField(
+                        controller: ctlUserID,
+                        keyboardType: TextInputType.text,
+                        autofocus: false,
+                        decoration: InputDecoration(
+                          hintText: ls.gs('UserID'),
+                          contentPadding:
+                          EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
+                          border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(32.0)),
+                        ),
                       ),
                     ),
-                  ),
-                  Text(gv.Space(sv.gintSpaceTextField)),
-                ],
-              ),
-              Text(' '),
-              Row(
-                children: <Widget>[
-                  Text(gv.Space(sv.gintSpaceTextField)),
-                  Expanded(
-                    child: TextFormField(
-                      controller: ctlUserPW,
-                      autofocus: false,
-                      obscureText: true,
-                      decoration: InputDecoration(
-                        hintText: ls.gs('UserPW'),
-                        contentPadding:
-                            EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
-                        border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(32.0)),
+                    Text(gv.Space(sv.gintSpaceTextField)),
+                  ],
+                ),
+                Text(' '),
+                Row(
+                  children: <Widget>[
+                    Text(gv.Space(sv.gintSpaceTextField)),
+                    Expanded(
+                      child: TextFormField(
+                        controller: ctlUserPW,
+                        autofocus: false,
+                        obscureText: true,
+                        decoration: InputDecoration(
+                          hintText: ls.gs('UserPW'),
+                          contentPadding:
+                          EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
+                          border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(32.0)),
+                        ),
                       ),
                     ),
-                  ),
-                  Text(gv.Space(sv.gintSpaceTextField)),
-                ],
-              ),
-              Text(' '),
-              Text(' '),
-              Row(
-                children: <Widget>[
-                  Text(gv.Space(sv.gintSpaceBigButton)),
-                  Expanded(
-                    child: SizedBox(
-                      height: sv.dblDefaultFontSize * 2.5,
-                      child: RaisedButton(
-                        shape: new RoundedRectangleBorder(
-                            borderRadius: new BorderRadius.circular(
-                                sv.dblDefaultRoundRadius)),
-                        textColor: Colors.white,
-                        color: Colors.greenAccent,
-                        onPressed: () => funLoginPressed(),
-                        child: Text('Login',
-                            style:
-                                TextStyle(fontSize: sv.dblDefaultFontSize * 1)),
+                    Text(gv.Space(sv.gintSpaceTextField)),
+                  ],
+                ),
+                Text(' '),
+                Text(' '),
+                Row(
+                  children: <Widget>[
+                    Text(gv.Space(sv.gintSpaceBigButton)),
+                    Expanded(
+                      child: SizedBox(
+                        height: sv.dblDefaultFontSize * 2.5,
+                        child: RaisedButton(
+                          shape: new RoundedRectangleBorder(
+                              borderRadius: new BorderRadius.circular(
+                                  sv.dblDefaultRoundRadius)),
+                          textColor: Colors.white,
+                          color: Colors.greenAccent,
+                          onPressed: () => funLoginPressed(),
+                          child: Text('Login',
+                              style:
+                              TextStyle(fontSize: sv.dblDefaultFontSize * 1)),
+                        ),
                       ),
                     ),
-                  ),
-                  Text(gv.Space(sv.gintSpaceBigButton)),
-                ],
-              ),
-            ],
+                    Text(gv.Space(sv.gintSpaceBigButton)),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
-      ),
-    );
-  }
+      );
+    }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: PreferredSize(
-        child: AppBar(
-          title: Text(
-            ls.gs('Login'),
-            style: TextStyle(fontSize: sv.dblDefaultFontSize),
+    @override
+    Widget build(BuildContext context) {
+      return Scaffold(
+        appBar: PreferredSize(
+          child: AppBar(
+            title: Text(
+              ls.gs('Login'),
+              style: TextStyle(fontSize: sv.dblDefaultFontSize),
+            ),
           ),
+          preferredSize: new Size.fromHeight(sv.dblTopHeight),
         ),
-        preferredSize: new Size.fromHeight(sv.dblTopHeight),
-      ),
-      body: ModalProgressHUD(child: Body(), inAsyncCall: bolLoading),
-      bottomNavigationBar:ClsBottom(),
-    );
+        body: ModalProgressHUD(child: Body(), inAsyncCall: gv.bolLoading),
+        bottomNavigationBar: ClsBottom(),
+      );
+    }
   }
-}
