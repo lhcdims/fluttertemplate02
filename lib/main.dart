@@ -14,23 +14,20 @@ import 'tmpSettings.dart';
 
 // Main Program
 void main() {
-  // Init Screen Vars
-  clsSettings.Init();
-
   // Init Global Vars and SharedPreference
   gv.Init().then((_) {
     // Get Previous Selected Language, if any
     gv.gstrLang = gv.getString('strLang');
     if (gv.gstrLang != '') {
       // Set Current Language
-      LangStrings.setLang(gv.gstrLang);
+      ls.setLang(gv.gstrLang);
 
       // Already has Current Language, so set first page to SettingsMain
       gv.gstrCurPage = 'SettingsMain';
       gv.gstrLastPage = 'SettingsMain';
     } else {
       // First Time Use, set Current Language to English
-      LangStrings.setLang('EN');
+      ls.setLang('EN');
     }
 
     // Init socket.io
@@ -39,6 +36,9 @@ void main() {
     // Set Orientation to PortraitUp
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
         .then((_) {
+      // Init Screen Vars
+      sv.Init();
+
       // Run MainApp
       runApp(new MyApp());
     });
@@ -79,8 +79,7 @@ class _MyAppState extends State<MyApp> {
       if (bolChanged) {
         switch (gv.gstrCurPage) {
           case 'Login':
-            setState(() {
-            });
+            setState(() {});
             break;
           default:
             break;
@@ -129,5 +128,6 @@ class _MainBodyState extends State<MainBody> {
         return ClsSettingsMain();
         break;
     }
+    return ClsHome();
   }
 }

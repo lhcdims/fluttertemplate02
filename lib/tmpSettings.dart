@@ -2,7 +2,7 @@
 
 import 'dart:ui';
 
-class clsSettings {
+class sv {
   // Top/Body/Bottom Height Ratio
   static double dblTopHeightRatio = 0.07;
   static double dblBodyHeightRatio = 0.83;
@@ -11,6 +11,9 @@ class clsSettings {
 
   // No. of space for setting the width of Big Button
   static double gintSpaceBigButton = 25;
+
+  // No. of space for setting the width of Text Field
+  static double gintSpaceTextField = 15;
 
   // Screen Height
   static double dblScreenHeight = window.physicalSize.height / window.devicePixelRatio;
@@ -38,6 +41,9 @@ class clsSettings {
 
   // Init Function
   static void Init() {
+    dblScreenHeight = window.physicalSize.height / window.devicePixelRatio;
+    dblScreenWidth = window.physicalSize.width / window.devicePixelRatio;
+
     // Set Smaller of Height and Width
     if (dblScreenHeight > dblScreenWidth) {
       dblScreenSmaller = dblScreenWidth;

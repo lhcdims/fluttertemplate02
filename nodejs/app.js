@@ -215,10 +215,51 @@ socketAll.on('connection', function (socket) {
     });
 
 
+    socket.on('LoginToServer', function (strUsrID, strUsrPW) {
+        funUpdateServerMonitor("userID: " + strUsrID, true);
+        funUpdateServerMonitor("userPW: " + strUsrPW, true);
+
+        funCheckLogin(strUsrID, strUsrPW, socket.id);
+
+    });
+
+
+
     // Catch any unexpected error, to avoid system hangs
     socket.on('error', function () { });
 });
 
+
+// SQL Command Insert
+function funCheckLogin(strUsrID, strUsrPW, socketID) {
+    let sql = 'Select usr_id, usr_nick, usr_status, usr_picture From userid where usr_id = ? AND usr_pw = ?';
+
+    // The following use pool instead of con
+    //con.connect(function (err) {
+    //    if (err) throw err;
+    //    console.log("MySQL Connected!");
+    //});
+    pool.getConnection(function (err, connection) {
+        connection.query(sql, [strUsrID, strUsrPW], function (err, result) {
+                if (err) {
+                    pool.releaseConnection(connection);
+                    throw err;
+                } else {
+                    if (result[0][usr_id] != "") {
+                    
+                    } else {
+
+                    }
+                    // How to check No. of record return?
+                    funUpdateServerMonitor("LoginToServer Result: " + result[0]['usr_id'], true);
+                    funUpdateServerMonitor("LoginToServer Result Length: " + result.length, true);
+                    pool.releaseConnection(connection);
+
+                    // socketAll.to(`${socketID}`).emit('LoginResult', );
+                }
+            });
+        });
+}
 
 
 
@@ -246,6 +287,13 @@ function utf8Encode(string) {
     }
     return utftext;
 }
+
+
+
+
+
+
+
 // Decode String From UTF-8
 function utf8Decode(utftext) {
     var string = "";

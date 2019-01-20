@@ -2,22 +2,31 @@
 
 // Import Flutter Darts
 import 'package:flutter/material.dart';
+import 'package:modal_progress_hud/modal_progress_hud.dart';
 import 'dart:convert';
+import 'dart:async';
 
 // Import Self Darts
+import 'bottom.dart';
 import 'gv.dart';
 import 'Home.dart';
 import 'LangStrings.dart';
 import 'SettingsMain.dart';
 import 'tmpSettings.dart';
 
+
 // Login Page
 class ClsLogin extends StatefulWidget {
   @override
   _ClsLoginState createState() => _ClsLoginState();
 }
+
 class _ClsLoginState extends State<ClsLogin> {
   int intCounter = 0;
+
+  static String strErrMessage = 'Error';
+
+  bool bolLoading = false;
 
   @override
   initState() {
@@ -25,40 +34,115 @@ class _ClsLoginState extends State<ClsLogin> {
     // Add listeners to this class, if any
   }
 
-  void _onItemTapped(int index) {
-    if (gv.gstrLang != '') {
-        gv.gintBottomIndex = index;
-        switch (index) {
-          case 0:
-          // Page Home Clicked
-            gv.gstrLastPage = gv.gstrCurPage;
-            gv.gstrCurPage = 'Home';
+  void funLoginPressed() {
+    // Show Loading
+    setState(() {
+      bolLoading = true;
+      gv.bolBottomLoading = true;
+    });
 
-            // Goto Home
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => ClsHome()),
-            );
-            Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
-            break;
-          case 1:
-          // Page Settings Clicked
-            gv.gstrLastPage = gv.gstrCurPage;
-            gv.gstrCurPage = 'SettingsMain';
+    // Send to server that client wants to login
+    gv.socket.emit('LoginToServer', [ctlUserID.text, ctlUserPW.text]);
 
-            // Goto SettingsMain
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => ClsSettingsMain()),
-            );
-            Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
-            break;
-          default:
-            break;
-        }
-    }
+
+    //Simulate a service call
+    print('submittingo backend...');
+    new Future.delayed(new Duration(seconds: 4), () {
+      setState(() {
+        bolLoading = false;
+        gv.bolBottomLoading = false;
+      });
+    });
   }
 
+  final ctlUserID = TextEditingController();
+  final ctlUserPW = TextEditingController();
+
+  Widget Body() {
+    return Center(
+      child: Container(
+        color: Colors.white,
+        height: sv.dblBodyHeight,
+        width: sv.dblScreenWidth,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              Text(' '),
+              Text(strErrMessage),
+              Text(' '),
+              Row(
+                children: <Widget>[
+                  Text(gv.Space(sv.gintSpaceTextField)),
+                  Expanded(
+                    child: TextFormField(
+                      controller: ctlUserID,
+                      keyboardType: TextInputType.text,
+                      autofocus: false,
+                      decoration: InputDecoration(
+                        hintText: ls.gs('UserID'),
+                        contentPadding:
+                            EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(32.0)),
+                      ),
+                    ),
+                  ),
+                  Text(gv.Space(sv.gintSpaceTextField)),
+                ],
+              ),
+              Text(' '),
+              Row(
+                children: <Widget>[
+                  Text(gv.Space(sv.gintSpaceTextField)),
+                  Expanded(
+                    child: TextFormField(
+                      controller: ctlUserPW,
+                      autofocus: false,
+                      obscureText: true,
+                      decoration: InputDecoration(
+                        hintText: ls.gs('UserPW'),
+                        contentPadding:
+                            EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(32.0)),
+                      ),
+                    ),
+                  ),
+                  Text(gv.Space(sv.gintSpaceTextField)),
+                ],
+              ),
+              Text(' '),
+              Text(' '),
+              Row(
+                children: <Widget>[
+                  Text(gv.Space(sv.gintSpaceBigButton)),
+                  Expanded(
+                    child: SizedBox(
+                      height: sv.dblDefaultFontSize * 2.5,
+                      child: RaisedButton(
+                        shape: new RoundedRectangleBorder(
+                            borderRadius: new BorderRadius.circular(
+                                sv.dblDefaultRoundRadius)),
+                        textColor: Colors.white,
+                        color: Colors.greenAccent,
+                        onPressed: () => funLoginPressed(),
+                        child: Text('Login',
+                            style:
+                                TextStyle(fontSize: sv.dblDefaultFontSize * 1)),
+                      ),
+                    ),
+                  ),
+                  Text(gv.Space(sv.gintSpaceBigButton)),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -66,38 +150,14 @@ class _ClsLoginState extends State<ClsLogin> {
       appBar: PreferredSize(
         child: AppBar(
           title: Text(
-            LangStrings.gs('Settings'),
-            style: TextStyle(fontSize: clsSettings.dblDefaultFontSize),
+            ls.gs('Login'),
+            style: TextStyle(fontSize: sv.dblDefaultFontSize),
           ),
         ),
-        preferredSize: new Size.fromHeight(clsSettings.dblTopHeight),
+        preferredSize: new Size.fromHeight(sv.dblTopHeight),
       ),
-      body: Center(
-        child: Container(
-          color: Colors.greenAccent,
-          height: clsSettings.dblBodyHeight,
-          width: clsSettings.dblScreenWidth,
-          child: Center(
-            child: Text(
-              LangStrings.gs('LoginContent') + gv.strLogin,
-              style: TextStyle(fontSize: clsSettings.dblDefaultFontSize),
-              textAlign: TextAlign.left,
-            ),
-          ),
-        ),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-              icon: Icon(Icons.home), title: Text(LangStrings.gs('Home'))),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.settings),
-              title: Text(LangStrings.gs('Settings'))),
-        ],
-        currentIndex: gv.gintBottomIndex,
-        fixedColor: Colors.deepPurple,
-        onTap: _onItemTapped,
-      ),
+      body: ModalProgressHUD(child: Body(), inAsyncCall: bolLoading),
+      bottomNavigationBar:ClsBottom(),
     );
   }
 }

@@ -22,6 +22,7 @@ dependencies:
   threading:
   shared_preferences:
   adhara_socket_io:
+  modal_progress_hud:
 
 dev_dependencies:
   flutter_test:

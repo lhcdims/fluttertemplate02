@@ -17,6 +17,9 @@ class gv {
   // Declare Language
   static var gstrLang = '';
 
+  // Disable Bottom when loading
+  static bool bolBottomLoading = false;
+
   // Declare SharedPreferences
   static SharedPreferences pref;
   static Init() async {
@@ -41,6 +44,8 @@ class gv {
     }
     return strResult;
   }
+
+
 
   // socket.io related
   static const String URI = 'http://thisapp.zephan.top:10531';
@@ -86,6 +91,7 @@ class gv {
     });
     socket.connect();
   }
+
   sendMessage() {
     if (socket != null) {
       print('sending message...');

@@ -6,7 +6,7 @@
 // 3. Modify the function gs()
 
 
-class LangStrings {
+class ls {
   // strLang is the Current Language selected by the User
   // *** NOT by the system locale of the mobile phone ***
   // e.g. You can use LangStrings.setLang('EN') to set Current Language to English
@@ -27,6 +27,8 @@ class LangStrings {
     { 'Title':'Login', 'Content':'Login'},
     { 'Title':'SelectLanguage', 'Content':'Select Language'},
     { 'Title':'Settings', 'Content':'Settings'},
+    { 'Title':'UserID', 'Content':'User ID'},
+    { 'Title':'UserPW', 'Content':'User Password'},
 
     { 'Title':'HomeContent', 'Content':'Home Content'},
     { 'Title':'LoginContent', 'Content':'Login Content'},
@@ -39,6 +41,8 @@ class LangStrings {
     { 'Title':'Login', 'Content':'登录'},
     { 'Title':'SelectLanguage', 'Content':'选择语言'},
     { 'Title':'Settings', 'Content':'设置'},
+    { 'Title':'UserID', 'Content':'账户ID'},
+    { 'Title':'UserPW', 'Content':'账户密碼'},
 
     { 'Title':'HomeContent', 'Content':'首页内容'},
     { 'Title':'LoginContent', 'Content':'登录页内容'},
@@ -51,6 +55,8 @@ class LangStrings {
     { 'Title':'Login', 'Content':'登錄'},
     { 'Title':'SelectLanguage', 'Content':'選擇語言'},
     { 'Title':'Settings', 'Content':'設置'},
+    { 'Title':'UserID', 'Content':'賬戶ID'},
+    { 'Title':'UserPW', 'Content':'賬戶密碼'},
 
     { 'Title':'HomeContent', 'Content':'首頁內容'},
     { 'Title':'LoginContent', 'Content':'登錄頁內容'},

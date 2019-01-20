@@ -1,4 +1,4 @@
-// This program allows you to Select Language Defined in LangStrings.dat
+// This program allows you to Select Language Defined in ls.dat
 
 // Import Flutter Darts
 import 'package:flutter/material.dart';
@@ -9,6 +9,7 @@ import 'Home.dart';
 import 'LangStrings.dart';
 import 'SettingsMain.dart';
 import 'tmpSettings.dart';
+import 'bottom.dart';
 
 // Home Page
 class ClsSelectLanguage extends StatefulWidget {
@@ -26,7 +27,7 @@ class _ClsSelectLanguageState extends State<ClsSelectLanguage> {
   void funSelectLang(strLang) {
     // Change Language
     gv.gstrLang = strLang;
-    LangStrings.setLang(strLang);
+    ls.setLang(strLang);
     // Store Language Selected in SharedPreferences
     gv.setString('strLang', strLang);
 
@@ -44,39 +45,6 @@ class _ClsSelectLanguageState extends State<ClsSelectLanguage> {
     Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
   }
 
-  void _onItemTapped(int index) {
-    if (gv.gstrLang != '') {
-      gv.gintBottomIndex = index;
-      switch (index) {
-        case 0:
-          // Page Home Clicked
-          gv.gstrLastPage = gv.gstrCurPage;
-          gv.gstrCurPage = 'Home';
-
-          // Goto Home
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => ClsHome()),
-          );
-          Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
-          break;
-        case 1:
-          // Page Settings Clicked
-          gv.gstrLastPage = gv.gstrCurPage;
-          gv.gstrCurPage = 'SettingsMain';
-
-          // Goto SettingsMain
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => ClsSettingsMain()),
-          );
-          Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
-          break;
-        default:
-          break;
-      }
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -85,45 +53,45 @@ class _ClsSelectLanguageState extends State<ClsSelectLanguage> {
         child: AppBar(
           title: Text(
             'Select Language',
-            style: TextStyle(fontSize: clsSettings.dblDefaultFontSize),
+            style: TextStyle(fontSize: sv.dblDefaultFontSize),
           ),
         ),
-        preferredSize: new Size.fromHeight(clsSettings.dblTopHeight),
+        preferredSize: new Size.fromHeight(sv.dblTopHeight),
       ),
       body: Container(
-        height: clsSettings.dblBodyHeight,
-        width: clsSettings.dblScreenWidth,
+        height: sv.dblBodyHeight,
+        width: sv.dblScreenWidth,
         child: Center(
           child: ListView.builder(
               shrinkWrap: true,
-              itemCount: LangStrings.listLang.length,
+              itemCount: ls.listLang.length,
               itemBuilder: (context, index) {
                 return Column(
                   children: <Widget>[
                     Text(' '),
                     Row(children: <Widget>[
-                      Text(gv.Space(clsSettings.gintSpaceBigButton),
+                      Text(gv.Space(sv.gintSpaceBigButton),
                           textAlign: TextAlign.center),
                       Expanded(
                         child: SizedBox(
-                          height: clsSettings.dblDefaultFontSize * 2.5,
+                          height: sv.dblDefaultFontSize * 2.5,
                           child: RaisedButton(
                             shape: new RoundedRectangleBorder(
                                 borderRadius: new BorderRadius.circular(
-                                    clsSettings.dblDefaultRoundRadius)),
+                                    sv.dblDefaultRoundRadius)),
                             textColor: Colors.white,
                             color: Colors.greenAccent,
                             onPressed: () => funSelectLang(
-                                LangStrings.listLang[index]['Lang']),
+                                ls.listLang[index]['Lang']),
                             child: Text(
-                                '${LangStrings.listLang[index]['LangDesc']}',
+                                '${ls.listLang[index]['LangDesc']}',
                                 style: TextStyle(
                                     fontSize:
-                                        clsSettings.dblDefaultFontSize * 1)),
+                                        sv.dblDefaultFontSize * 1)),
                           ),
                         ),
                       ),
-                      Text(gv.Space(clsSettings.gintSpaceBigButton),
+                      Text(gv.Space(sv.gintSpaceBigButton),
                           textAlign: TextAlign.center),
                     ]),
                     Text(' '),
@@ -132,18 +100,7 @@ class _ClsSelectLanguageState extends State<ClsSelectLanguage> {
               }),
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-              icon: Icon(Icons.home), title: Text(LangStrings.gs('Home'))),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.settings),
-              title: Text(LangStrings.gs('Settings'))),
-        ],
-        currentIndex: gv.gintBottomIndex,
-        fixedColor: Colors.deepPurple,
-        onTap: _onItemTapped,
-      ),
+      bottomNavigationBar: ClsBottom()
     );
   }
 }
