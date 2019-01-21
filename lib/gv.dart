@@ -2,9 +2,11 @@
 
 // Import Shared Preferences
 import 'package:shared_preferences/shared_preferences.dart';
+
 // Import socket.io related
 // import 'dart:convert';
 import 'package:adhara_socket_io/adhara_socket_io.dart';
+import 'package:flutter/material.dart';
 
 class gv {
   // Current Page
@@ -18,19 +20,26 @@ class gv {
   static var gstrLang = '';
 
   // Disable Bottom when loading
-  static bool bolBottomLoading = false;
+  static bool bolLoading = false;
+
+  // Var For Login
+  static var aryLoginResult = [];
+  static var timLogin = DateTime.now().millisecondsSinceEpoch;
 
   // Declare SharedPreferences
   static SharedPreferences pref;
+
   static Init() async {
     pref = await SharedPreferences.getInstance();
   }
+
   static getString(strKey) {
     var strResult = '';
     strResult = pref.getString(strKey) ?? '';
 
     return strResult;
   }
+
   static setString(strKey, strValue) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setString(strKey, strValue);
@@ -39,13 +48,11 @@ class gv {
   // Function to return no. of space
   static String Space(intSpace) {
     var strResult = '';
-    for(var i=1;i<=intSpace; i++) {
+    for (var i = 1; i <= intSpace; i++) {
       strResult += ' ';
     }
     return strResult;
   }
-
-
 
   // socket.io related
   static const String URI = 'http://thisapp.zephan.top:10531';
@@ -89,6 +96,20 @@ class gv {
       strLogin = data;
       print('strLogin: ' + strLogin);
     });
+
+    gv.socket.on('LoginResult', (data) {
+      // set loading
+      //bolLoading = false;
+      // Check if the result comes back too late
+      if (DateTime.now().millisecondsSinceEpoch - timLogin > 5000) {
+        print('login result timeout');
+        return;
+      }
+      aryLoginResult = data;
+      print('login result okay');
+      print('Result: ' + aryLoginResult[0]);
+    });
+
     socket.connect();
   }
 

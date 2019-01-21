@@ -220,7 +220,6 @@ socketAll.on('connection', function (socket) {
         funUpdateServerMonitor("userPW: " + strUsrPW, true);
 
         funCheckLogin(strUsrID, strUsrPW, socket.id);
-
     });
 
 
@@ -245,17 +244,22 @@ function funCheckLogin(strUsrID, strUsrPW, socketID) {
                     pool.releaseConnection(connection);
                     throw err;
                 } else {
-                    if (result[0][usr_id] != "") {
-                    
-                    } else {
-
+                    // Save result value
+                    let aryResult = ['0000', result];
+                    try {
+                        funUpdateServerMonitor("LoginToServer Result: " + aryResult[1]['usr_id'], true);
+                        funUpdateServerMonitor("LoginToServer Result Length: " + result.length, true);
+                    } catch (err) {
+                        //
                     }
-                    // How to check No. of record return?
-                    funUpdateServerMonitor("LoginToServer Result: " + result[0]['usr_id'], true);
-                    funUpdateServerMonitor("LoginToServer Result Length: " + result.length, true);
+
+
                     pool.releaseConnection(connection);
 
-                    // socketAll.to(`${socketID}`).emit('LoginResult', );
+                    if (result.length === 0) {
+                        aryResult[0] = '1000';
+                    }
+                    socketAll.to(`${socketID}`).emit('LoginResult', aryResult);
                 }
             });
         });

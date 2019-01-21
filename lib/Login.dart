@@ -46,7 +46,7 @@ class _ClsLoginState extends State<ClsLogin> {
 
     // Start Login Time in ms
     gv.timLogin = DateTime.now().millisecondsSinceEpoch;
-
+    
     new Future.delayed(new Duration(seconds: 1), () {
       while (gv.bolLoading) {
         // Use string to check if it is array
