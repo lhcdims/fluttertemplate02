@@ -25,6 +25,10 @@ class ls {
     // General
     { 'Title':'Home', 'Content':'Home'},
     { 'Title':'Login', 'Content':'Login'},
+    { 'Title':'LoginFailed', 'Content':'Login Failed'},
+    { 'Title':'LoginSuccess', 'Content':'Login Success'},
+    { 'Title':'NetworkConnected', 'Content':'Network Connected'},
+    { 'Title':'NetworkDisconnected', 'Content':'Network Disonnected'},
     { 'Title':'SelectLanguage', 'Content':'Select Language'},
     { 'Title':'Settings', 'Content':'Settings'},
     { 'Title':'UserID', 'Content':'User ID'},
@@ -39,6 +43,10 @@ class ls {
     // General
     { 'Title':'Home', 'Content':'首页'},
     { 'Title':'Login', 'Content':'登录'},
+    { 'Title':'LoginFailed', 'Content':'登入失败'},
+    { 'Title':'LoginSuccess', 'Content':'登入成功'},
+    { 'Title':'NetworkConnected', 'Content':'已连接网络'},
+    { 'Title':'NetworkDisconnected', 'Content':'网络已断开'},
     { 'Title':'SelectLanguage', 'Content':'选择语言'},
     { 'Title':'Settings', 'Content':'设置'},
     { 'Title':'UserID', 'Content':'账户ID'},
@@ -53,6 +61,10 @@ class ls {
     // General
     { 'Title':'Home', 'Content':'首頁'},
     { 'Title':'Login', 'Content':'登錄'},
+    { 'Title':'LoginFailed', 'Content':'登入失敗'},
+    { 'Title':'LoginSuccess', 'Content':'登入成功'},
+    { 'Title':'NetworkConnected', 'Content':'已連接網絡'},
+    { 'Title':'NetworkDisconnected', 'Content':'網絡已斷開'},
     { 'Title':'SelectLanguage', 'Content':'選擇語言'},
     { 'Title':'Settings', 'Content':'設置'},
     { 'Title':'UserID', 'Content':'賬戶ID'},

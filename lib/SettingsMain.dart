@@ -5,12 +5,8 @@ import 'package:flutter/material.dart';
 
 // Import Self Darts
 import 'gv.dart';
-import 'Home.dart';
 import 'LangStrings.dart';
-import 'Login.dart';
-import 'SelectLanguage.dart';
 import 'tmpSettings.dart';
-import 'bottom.dart';
 
 // Home Page
 class ClsSettingsMain extends StatefulWidget {
@@ -20,7 +16,7 @@ class ClsSettingsMain extends StatefulWidget {
 
 class _ClsSettingsMainState extends State<ClsSettingsMain> {
   static var listSettingsMain = [
-    // List of Languages available
+    // list of Buttons in this page
     {'Prog': 'SelectLanguage'},
     {'Prog': 'Login'},
   ];
@@ -31,6 +27,7 @@ class _ClsSettingsMainState extends State<ClsSettingsMain> {
     // Add listeners to this class, if any
   }
 
+  // Choose which page when button pressed
   void funSettingsMain(strProg) {
     // Set LastPage
     gv.gstrLastPage = gv.gstrCurPage;
@@ -43,13 +40,13 @@ class _ClsSettingsMainState extends State<ClsSettingsMain> {
       case 'SelectLanguage':
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => ClsSelectLanguage()),
+          MaterialPageRoute(builder: (context) => gv.clsSelectLanguage),
         );
         break;
       case 'Login':
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => ClsLogin()),
+          MaterialPageRoute(builder: (context) => gv.clsLogin),
         );
         break;
       default:
@@ -113,7 +110,7 @@ class _ClsSettingsMainState extends State<ClsSettingsMain> {
               }),
         ),
       ),
-      bottomNavigationBar: ClsBottom()
+      bottomNavigationBar: gv.clsBottom,
     );
   }
 }

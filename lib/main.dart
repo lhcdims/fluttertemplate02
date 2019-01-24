@@ -4,43 +4,39 @@ import 'package:flutter/services.dart';
 import "package:threading/threading.dart";
 
 // import self darts
-import 'Home.dart';
 import 'gv.dart';
 import 'LangStrings.dart';
-import 'Login.dart';
-import 'SelectLanguage.dart';
-import 'SettingsMain.dart';
 import 'tmpSettings.dart';
 
 // Main Program
 void main() {
-  // Init Global Vars and SharedPreference
-  gv.Init().then((_) {
-    // Get Previous Selected Language, if any
-    gv.gstrLang = gv.getString('strLang');
-    if (gv.gstrLang != '') {
-      // Set Current Language
-      ls.setLang(gv.gstrLang);
+  // Set Orientation to PortraitUp
+  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
+      .then((_) {
+    // Init Screen Variables
+    sv.Init();
 
-      // Already has Current Language, so set first page to SettingsMain
-      gv.gstrCurPage = 'SettingsMain';
-      gv.gstrLastPage = 'SettingsMain';
-    } else {
-      // First Time Use, set Current Language to English
-      ls.setLang('EN');
-    }
+    // Init Global Vars and SharedPreference
+    gv.Init().then((_) {
+      // Get Previous Selected Language from SharedPreferences, if any
+      gv.gstrLang = gv.getString('strLang');
+      if (gv.gstrLang != '') {
+        // Set Current Language
+        ls.setLang(gv.gstrLang);
 
-    // Init socket.io
-    gv.initSocket();
-
-    // Set Orientation to PortraitUp
-    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
-        .then((_) {
-      // Init Screen Vars
-      sv.Init();
+        // Already has Current Language, so set first page to SettingsMain
+        gv.gstrCurPage = 'SettingsMain';
+        gv.gstrLastPage = 'SettingsMain';
+      } else {
+        // First Time Use, set Current Language to English
+        ls.setLang('EN');
+      }
 
       // Run MainApp
       runApp(new MyApp());
+
+      // Init socket.io
+      gv.initSocket();
     });
   });
 }
@@ -63,19 +59,15 @@ class _MyAppState extends State<MyApp> {
   void funTimerDefault() async {
     bool bolChanged = false;
     while (true) {
+      // Allow this thread to run each XXX milliseconds
       await Thread.sleep(500);
 
-      // Check if gstrCurPage Changed
-      // Which means that user want to change to another page
-      // i.e. need to re-render Main Page
-      // gstrCurTop Changed, should re-render page
       bolChanged = false;
 
-      if (gv.strLogin != gv.strLoginLast) {
-        bolChanged = true;
-        gv.strLoginLast = gv.strLogin;
-      }
+      // Check any changes need to setState here
 
+      // If anything changes
+      // setState according to gv.gstrCurPage
       if (bolChanged) {
         switch (gv.gstrCurPage) {
           case 'Login':
@@ -91,7 +83,7 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      // Disable Debug
+      // Disable Show Debug
       debugShowCheckedModeBanner: false,
 
       home: MainBody(),
@@ -116,18 +108,18 @@ class _MainBodyState extends State<MainBody> {
     // Here Return Page According to gv.gstrCurPage
     switch (gv.gstrCurPage) {
       case 'Home':
-        return ClsHome();
+        return gv.clsHome;
         break;
       case 'Login':
-        return ClsLogin();
+        return gv.clsLogin;
         break;
       case 'SelectLanguage':
-        return ClsSelectLanguage();
+        return gv.clsSelectLanguage;
         break;
       case 'SettingsMain':
-        return ClsSettingsMain();
+        return gv.clsSettingsMain;
         break;
     }
-    return ClsHome();
+    return gv.clsHome;
   }
 }

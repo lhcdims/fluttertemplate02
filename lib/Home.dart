@@ -6,9 +6,7 @@ import 'package:flutter/material.dart';
 // Import Self Darts
 import 'gv.dart';
 import 'LangStrings.dart';
-import 'SettingsMain.dart';
 import 'tmpSettings.dart';
-import 'bottom.dart';
 
 // Home Page
 class ClsHome extends StatefulWidget {
@@ -22,7 +20,6 @@ class _ClsHomeState extends State<ClsHome> {
     super.initState();
     // Add listeners to this class, if any
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +47,7 @@ class _ClsHomeState extends State<ClsHome> {
           ),
         ),
       ),
-      bottomNavigationBar: ClsBottom()
+      bottomNavigationBar: gv.clsBottom,
     );
   }
 }

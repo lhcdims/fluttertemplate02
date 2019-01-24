@@ -1,15 +1,13 @@
-// This program allows you to Select Language Defined in ls.dat
+// This program allows you to Select Language Defined in LangStrings.dart
 
 // Import Flutter Darts
 import 'package:flutter/material.dart';
 
 // Import Self Darts
 import 'gv.dart';
-import 'Home.dart';
 import 'LangStrings.dart';
-import 'SettingsMain.dart';
 import 'tmpSettings.dart';
-import 'bottom.dart';
+import 'Utilities.dart';
 
 // Home Page
 class ClsSelectLanguage extends StatefulWidget {
@@ -40,11 +38,12 @@ class _ClsSelectLanguageState extends State<ClsSelectLanguage> {
     // Code to Goto Next Page
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => ClsSettingsMain()),
+      MaterialPageRoute(builder: (context) => gv.clsSettingsMain),
     );
+    // Since no need to go back to this page,
+    // Reset routes here
     Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -70,7 +69,7 @@ class _ClsSelectLanguageState extends State<ClsSelectLanguage> {
                   children: <Widget>[
                     Text(' '),
                     Row(children: <Widget>[
-                      Text(gv.Space(sv.gintSpaceBigButton),
+                      Text(ut.Space(sv.gintSpaceBigButton),
                           textAlign: TextAlign.center),
                       Expanded(
                         child: SizedBox(
@@ -81,17 +80,15 @@ class _ClsSelectLanguageState extends State<ClsSelectLanguage> {
                                     sv.dblDefaultRoundRadius)),
                             textColor: Colors.white,
                             color: Colors.greenAccent,
-                            onPressed: () => funSelectLang(
-                                ls.listLang[index]['Lang']),
-                            child: Text(
-                                '${ls.listLang[index]['LangDesc']}',
+                            onPressed: () =>
+                                funSelectLang(ls.listLang[index]['Lang']),
+                            child: Text('${ls.listLang[index]['LangDesc']}',
                                 style: TextStyle(
-                                    fontSize:
-                                        sv.dblDefaultFontSize * 1)),
+                                    fontSize: sv.dblDefaultFontSize * 1)),
                           ),
                         ),
                       ),
-                      Text(gv.Space(sv.gintSpaceBigButton),
+                      Text(ut.Space(sv.gintSpaceBigButton),
                           textAlign: TextAlign.center),
                     ]),
                     Text(' '),
@@ -100,7 +97,7 @@ class _ClsSelectLanguageState extends State<ClsSelectLanguage> {
               }),
         ),
       ),
-      bottomNavigationBar: ClsBottom()
+      bottomNavigationBar: gv.clsBottom,
     );
   }
 }

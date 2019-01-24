@@ -1,7 +1,10 @@
 // This program 'Template Settings' sets the screen/font height/width etc.
 
+// Import Flutter Darts
 import 'dart:ui';
 
+
+// Class Screen Variables sv
 class sv {
   // Top/Body/Bottom Height Ratio
   static double dblTopHeightRatio = 0.07;
@@ -10,10 +13,10 @@ class sv {
   static double dblDefaultFontSizeRatio = 0.025;
 
   // No. of space for setting the width of Big Button
-  static double gintSpaceBigButton = 25;
+  static int gintSpaceBigButton = 25;
 
   // No. of space for setting the width of Text Field
-  static double gintSpaceTextField = 15;
+  static int gintSpaceTextField = 15;
 
   // Screen Height
   static double dblScreenHeight = window.physicalSize.height / window.devicePixelRatio;
