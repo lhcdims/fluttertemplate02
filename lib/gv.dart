@@ -2,7 +2,7 @@
 
 // Import Flutter Darts
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:threading/threading.dart';
 import 'package:adhara_socket_io/adhara_socket_io.dart';
 
 // Import Self Darts
@@ -103,7 +103,7 @@ class gv {
       print('onDisconnect');
       ut.showToast(ls.gs('NetworkDisconnected'));
     });
-    socket.on('loginget', (data) {
+    socket.on('UpdateYourSocketID', (data) {
       print('strLogin: ' + data);
     });
 
@@ -121,8 +121,19 @@ class gv {
     });
 
     socket.connect();
-  }
 
+    var threadHB = new Thread(funTimerHeartBeat);    // Create a new thread to simulate an External Event that changes a global variable defined in gv.dart
+    threadHB.start();
+  }
+  static void funTimerHeartBeat() async {  // The following function simulates an External Event  e.g. a global variable is changed by socket.io and see how all widgets react with this global variable
+    while (true) {
+      await Thread.sleep(5000);
+      if (socket != null) {
+        print('Sending HB...' + socket.id.toString());
+        socket.emit('HB',[0]);
+      }
+    }
+  }
   sendMessage() {
     if (socket != null) {
       print('sending message...');

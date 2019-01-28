@@ -9,7 +9,7 @@ var fs = require('fs');
 //dt.format('YYYY-MM-DD HH:mm:ss');
 
 Date.prototype.Format = function (fmt) { //author: meizz
-    var o = {
+    let o = {
         "M+": this.getMonth() + 1, //月份
         "d+": this.getDate(), //日
         "h+": this.getHours(), //小时
@@ -19,7 +19,7 @@ Date.prototype.Format = function (fmt) { //author: meizz
         "S": this.getMilliseconds() //毫秒
     };
     if (/(y+)/.test(fmt)) fmt = fmt.replace(RegExp.$1, (this.getFullYear() + "").substr(4 - RegExp.$1.length));
-    for (var k in o)
+    for (let k in o)
         if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length === 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
     return fmt;
 };
@@ -27,7 +27,7 @@ Date.prototype.Format = function (fmt) { //author: meizz
 
 // Console Related
 function funUpdateConsole(msg, bolDebugOnly) {
-    var bolShouldShow = false;
+    let bolShouldShow = false;
     try {
         if (bolDebugOnly) {
             if (gbolDebug) {
@@ -37,7 +37,7 @@ function funUpdateConsole(msg, bolDebugOnly) {
             bolShouldShow = true;
         }
         if (bolShouldShow) {
-            var strTempDate = new Date().Format("yyyy-MM-dd hh:mm:ss");
+            let strTempDate = new Date().Format("yyyy-MM-dd hh:mm:ss");
             console.log(strTempDate + " : " + msg);
         }
     } catch (err) {
@@ -53,10 +53,9 @@ var pool = mysql.createPool({
     connectionLimit: 10,
     host: "localhost",
     user: "root",
-    password: "zephan915",
+    password: fs.readFileSync('mysqlpw.txt').toString().replace(/\n/g, ''),
     database: "ken068802"
 });
-
 
 
 
@@ -82,7 +81,7 @@ httpServer.listen(10502, function () {
 });
 
 function funUpdateServerMonitor(strMsg, bolDebugOnly) {
-    var bolShouldShow = false;
+    let bolShouldShow = false;
     try {
         if (bolDebugOnly) {
             if (gbolDebug) {
@@ -92,7 +91,7 @@ function funUpdateServerMonitor(strMsg, bolDebugOnly) {
             bolShouldShow = true;
         }
         if (bolShouldShow) {
-            var strTempDate = new Date().Format("yyyy-MM-dd hh:mm:ss");
+            let strTempDate = new Date().Format("yyyy-MM-dd hh:mm:ss");
             ioServer.emit('chat message', strTempDate + " : " + strMsg);
         }
     } catch (err) {
@@ -108,7 +107,7 @@ var ioClient = require('socket.io');
 var httpClient = require('http');
 
 var serverClient = httpClient.createServer(function (req, res) {
-    var headers = {};
+    let headers = {};
     headers["Access-Control-Allow-Origin"] = "*";
     headers["Access-Control-Allow-Methods"] = "POST, GET, PUT, DELETE, OPTIONS";
     //    headers["Access-Control-Allow-Credentials"] = true;
@@ -133,15 +132,14 @@ funUpdateConsole('ThisApp Socket.IO Server running at port 10531', false);
 
 // Show Clients' List every 30 seconds
 function funShowClients() {
-    var i = 0;
-    for (i = 0; i < aryClients.length; i++) {
+    for (let i = 0; i < aryClients.length; i++) {
         try {
             funUpdateServerMonitor("Connection Code: " + aryClients[i].connectionCode + "&nbsp;&nbsp;&nbsp;User ID: " + aryClients[i].userId, true);
         } catch (err) {
             //
         }
     }
-    var dtTemp = Date.now();
+    // let dtTemp = Date.now();
     setTimeout(funShowClients, 30000);
 }
 funShowClients();
@@ -152,33 +150,29 @@ funShowClients();
 var socketAll = new ioClient();
 socketAll.attach(serverClient);
 
-
-function funTestFlutter(SocketID) {
-    socketAll.to(`${SocketID}`).emit('loginget', SocketID);
-}
-
 // var socketAll = ioClient.listen(serverClient);
 socketAll.on('connection', function (socket) {
     funUpdateConsole("Client Connected, Socket ID: " + socket.id, false);
     funUpdateServerMonitor("Client Connected, Socket ID: " + socket.id, false);
     socket.emit("UpdateYourSocketID", socket.id);
 
-    setTimeout(funTestFlutter, 10000, socket.id);
+    // Add Connection to Array with Empty User ID
+    aryClients.push({ connectionCode: socket.id, userId: '', lastHB: Date.now(), socket: socket});
 
     socket.on('updateClientUserId', function (userid) {
-        var bolFound = false;
-        for (var i = 0; i < aryClients.length; i++) {
+        let bolFound = false;
+        for (let i = 0; i < aryClients.length; i++) {
             if (aryClients[i].connectionCode === socket.id) {
                 aryClients[i].userId = userid;
+                aryClients[i].lastHB = Date.now();
                 bolFound = true;
                 funUpdateConsole("Update User ID: " + userid + " from Socket ID: " + socket.id, true);
             }
         }
         if (!bolFound) {
-            if (userid !== "") {
-                aryClients.push({ connectionCode: socket.id, userId: userid});
-                funUpdateConsole("Add User ID: " + userid + " from Socket ID: " + socket.id, true);
-            }
+            // Impossible
+            aryClients.push({ connectionCode: socket.id, userId: userid, lastHB: Date.now(), socket: socket});
+            funUpdateConsole("Add User ID: " + userid + " from Socket ID: " + socket.id, true);
         }
         socketAll.emit("ServerUpdateUserList", aryClients);
         funUpdateConsole("ServerUpdateUserList SENT on UPDATE", true);
@@ -186,7 +180,7 @@ socketAll.on('connection', function (socket) {
 
 
     socket.on('removeClientUserId', function (userid) {
-        for (var i = 0; i < aryClients.length; i++) {
+        for (let i = 0; i < aryClients.length; i++) {
             if (aryClients[i].connectionCode === socket.id) {
                 aryClients[i].userId = "";
                 funUpdateConsole("Remove User ID: " + userid + " from Socket ID: " + socket.id, true);
@@ -200,7 +194,7 @@ socketAll.on('connection', function (socket) {
     socket.on('disconnect', function () {
         funUpdateConsole("Client Disconnected, Socket ID: " + socket.id, false);
         funUpdateServerMonitor("Client Disconnected, Socket ID: " + socket.id, false);
-        for (var i = 0; i < aryClients.length; i++) {
+        for (let i = 0; i < aryClients.length; i++) {
             if (aryClients[i].connectionCode === socket.id) {
                 aryClients.splice(i, 1);
             }
@@ -210,8 +204,13 @@ socketAll.on('connection', function (socket) {
     });
 
 
-    socket.on('HeartBeat', function () {
+    socket.on('HB', function (aryTemp) {
         funUpdateServerMonitor("Heart Beat from Socket ID: " + socket.id, true);
+        for (let i = 0; i < aryClients.length; i++) {
+            if (aryClients[i].connectionCode === socket.id) {
+                aryClients[i].lastHB = Date.now();
+            }
+        }
     });
 
 
@@ -222,11 +221,27 @@ socketAll.on('connection', function (socket) {
         funCheckLogin(strUsrID, strUsrPW, socket.id);
     });
 
-
-
     // Catch any unexpected error, to avoid system hangs
     socket.on('error', function () { });
 });
+// Disconnect clients without HB
+function funCheckHB() {
+    let i = 0;
+    for (i = 0; i < aryClients.length; i++) {
+        try {
+            if (Date.now() > aryClients[i].lastHB + 30000) {
+                funUpdateServerMonitor("No HB Disconnect: " + aryClients[i].connectionCode, true);
+                aryClients[i].socket.disconnect();
+            }
+        } catch (err) {
+            // If someone disconnect, there will be an error because aryClients.length changes
+            // funUpdateServerMonitor("No HB Disconnect Error: " + err, true);
+        }
+    }
+    // let dtTemp = Date.now();
+    setTimeout(funCheckHB, 30000);
+}
+funCheckHB();
 
 
 // SQL Command Insert
@@ -274,9 +289,9 @@ function funCheckLogin(strUsrID, strUsrPW, socketID) {
 // Encode String to UTF-8
 function utf8Encode(string) {
     string = string.replace(/\r\n/g, "\n");
-    var utftext = "";
-    for (var n = 0; n < string.length; n++) {
-        var c = string.charCodeAt(n);
+    let utftext = "";
+    for (let n = 0; n < string.length; n++) {
+        let c = string.charCodeAt(n);
         if (c < 128) {
             utftext += String.fromCharCode(c);
         } else if ((c > 127) && (c < 2048)) {
@@ -300,9 +315,9 @@ function utf8Encode(string) {
 
 // Decode String From UTF-8
 function utf8Decode(utftext) {
-    var string = "";
-    var i = 0;
-    var c = c1 = c2 = 0;
+    let string = "";
+    let i = 0;
+    let c = c1 = c2 = 0;
     while (i < utftext.length) {
         c = utftext.charCodeAt(i);
         if (c < 128) {
@@ -323,14 +338,14 @@ function utf8Decode(utftext) {
 }
 
 function json_decode(str_json) {
-    var json = JSON;
+    let json = JSON;
     if (typeof json === 'object' && typeof json.parse === 'function') {
         return json.parse(str_json);
     }
 
-    var cx = /[\u0000\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g;
-    var j;
-    var text = str_json;
+    let cx = /[\u0000\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g;
+    let j;
+    let text = str_json;
 
     // Parsing happens in four stages. In the first stage, we replace certain
     // Unicode characters with escape sequences. JavaScript handles many characters
@@ -375,16 +390,16 @@ function json_decode(str_json) {
 }
 
 function json_encode(mixed_val) {
-    var json = JSON;
+    let json = JSON;
     if (typeof json === 'object' && typeof json.stringify === 'function') {
         return json.stringify(mixed_val);
     }
 
-    var value = mixed_val;
+    let value = mixed_val;
 
-    var quote = function (string) {
-        var escapable = /[\\\"\u0000-\u001f\u007f-\u009f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g;
-        var meta = {    // table of character substitutions
+    let quote = function (string) {
+        let escapable = /[\\\"\u0000-\u001f\u007f-\u009f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g;
+        let meta = {    // table of character substitutions
             '\b': '\\b',
             '\t': '\\t',
             '\n': '\\n',
@@ -397,23 +412,23 @@ function json_encode(mixed_val) {
         escapable.lastIndex = 0;
         return escapable.test(string) ?
             '"' + string.replace(escapable, function (a) {
-                var c = meta[a];
+                let c = meta[a];
                 return typeof c === 'string' ? c :
                     '\\u' + ('0000' + a.charCodeAt(0).toString(16)).slice(-4);
             }) + '"' :
             '"' + string + '"';
     };
 
-    var str = function (key, holder) {
-        var gap = '';
-        var indent = '    ';
-        var i = 0;          // The loop counter.
-        var k = '';          // The member key.
-        var v = '';          // The member value.
-        var length = 0;
-        var mind = gap;
-        var partial = [];
-        var value = holder[key];
+    let str = function (key, holder) {
+        let gap = '';
+        let indent = '    ';
+        let i = 0;          // The loop counter.
+        let k = '';          // The member key.
+        let v = '';          // The member value.
+        let length = 0;
+        let mind = gap;
+        let partial = [];
+        let value = holder[key];
 
         // If the value has a toJSON method, call it to obtain a replacement value.
         if (value && typeof value === 'object' &&

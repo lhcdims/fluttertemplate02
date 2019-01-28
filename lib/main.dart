@@ -1,7 +1,6 @@
 // import flutter darts
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import "package:threading/threading.dart";
 
 // import self darts
 import 'gv.dart';
@@ -51,33 +50,6 @@ class _MyAppState extends State<MyApp> {
   @override
   initState() {
     super.initState();
-    // Set funTimerDefault, to listen to change of Vars
-    var threadTimerDefault = new Thread(funTimerDefault);
-    threadTimerDefault.start();
-  }
-
-  void funTimerDefault() async {
-    bool bolChanged = false;
-    while (true) {
-      // Allow this thread to run each XXX milliseconds
-      await Thread.sleep(500);
-
-      bolChanged = false;
-
-      // Check any changes need to setState here
-
-      // If anything changes
-      // setState according to gv.gstrCurPage
-      if (bolChanged) {
-        switch (gv.gstrCurPage) {
-          case 'Login':
-            setState(() {});
-            break;
-          default:
-            break;
-        }
-      }
-    }
   }
 
   @override

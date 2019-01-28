@@ -3,6 +3,8 @@
 // Import Flutter Darts
 import 'package:flutter/material.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
+import 'package:threading/threading.dart';
+import 'package:flutter/services.dart';
 import 'dart:async';
 
 // Import Self Darts
@@ -29,6 +31,8 @@ class _ClsLoginState extends State<ClsLogin> {
   }
 
   void funLoginPressed() {
+    bool bolLoadingLast = true;
+
     // Reset login result
     gv.aryLoginResult = [];
 
@@ -43,23 +47,31 @@ class _ClsLoginState extends State<ClsLogin> {
     // Start Login Time in ms
     gv.timLogin = DateTime.now().millisecondsSinceEpoch;
 
-    new Future.delayed(new Duration(seconds: 1), () {
+    new Future.delayed(new Duration(milliseconds: 100), () async {
       while (gv.bolLoading) {
+        await Thread.sleep(100);
         // Use string to check if it is array
         if (gv.aryLoginResult.toString() == '[]') {
           // this means the server didnt return any value
           if (DateTime.now().millisecondsSinceEpoch - gv.timLogin > 5000) {
             gv.bolLoading = false;
             print('Login Fail');
-            setState(() {
-              gv.bolLoading = false;
-            });
+            if (gv.bolLoading != bolLoadingLast) {
+              bolLoadingLast = gv.bolLoading;
+              setState(() {
+                gv.bolLoading = false;
+              });
+            }
             ut.showToast(ls.gs('LoginFailed'));
           } else {
+            // Continue Loading
             gv.bolLoading = true;
-            setState(() {
-              gv.bolLoading = true;
-            });
+            if (gv.bolLoading != bolLoadingLast) {
+              bolLoadingLast = gv.bolLoading;
+              setState(() {
+                gv.bolLoading = true;
+              });
+            }
           }
         } else {
           // this means that server has returned some values
@@ -67,33 +79,47 @@ class _ClsLoginState extends State<ClsLogin> {
             gv.bolLoading = false;
             print('Login Success');
             // Hide Loading
-            setState(() {
-              gv.bolLoading = false;
-            });
+            if (gv.bolLoading != bolLoadingLast) {
+              bolLoadingLast = gv.bolLoading;
+              setState(() {
+                gv.bolLoading = false;
+              });
+            }
             // Show Login success
             ut.showToast(ls.gs('LoginSuccess'));
             // Do other things
 
           } else if (gv.aryLoginResult[0] == '1000') {
             gv.bolLoading = false;
-            print('Login Fail');
+            print('Login Fail: User ID/PW not correct');
             // Hide Loading
-            setState(() {
-              gv.bolLoading = false;
-            });
-            // Show Login success
+            if (gv.bolLoading != bolLoadingLast) {
+              bolLoadingLast = gv.bolLoading;
+              setState(() {
+                gv.bolLoading = false;
+              });
+            }
+            // Show Login Failed
             ut.showToast(ls.gs('LoginFailed'));
             // Do other things
 
           } else {
-            gv.bolLoading = true;
-            setState(() {
-              gv.bolLoading = true;
-            });
+            // Other Error, Login Failed
+            gv.bolLoading = false;
+            print('Login Fail: Other Error');
+            if (gv.bolLoading != bolLoadingLast) {
+              bolLoadingLast = gv.bolLoading;
+              setState(() {
+                gv.bolLoading = false;
+              });
+            }
+            // Show Login Failed
+            ut.showToast(ls.gs('LoginFailed'));
           }
         }
       }
-    });
+    }
+    );
   }
 
   void showAlert(BuildContext context, strTitle, strContent) {
