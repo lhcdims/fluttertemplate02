@@ -16,6 +16,7 @@ import 'tmpSettings.dart';
 import 'Utilities.dart';
 
 // Import Pages
+import 'bottom.dart';
 import 'SettingsMain.dart';
 
 // Login Page
@@ -27,8 +28,6 @@ class ClsLogin extends StatefulWidget {
 class _ClsLoginState extends State<ClsLogin> {
   int intCounter = 0;
 
-  static String strErrMessage = 'Error';
-
   @override
   initState() {
     super.initState();
@@ -36,7 +35,23 @@ class _ClsLoginState extends State<ClsLogin> {
   }
 
   void funLoginPressed() {
+    gv.resetVars();
+
     bool bolLoadingLast = true;
+
+    // Validate Input
+    if (ut.stringBytes(ctlUserID.text) < gv.intDefUserIDMinLen || ut.stringBytes(ctlUserID.text) > gv.intDefUserIDMaxLen) {
+      setState(() {
+        gv.strLoginError = ls.gs('UserIDErrorMinMaxLen');
+      });
+      return;
+    }
+    if (ut.stringBytes(ctlUserPW.text) < gv.intDefUserPWMinLen || ut.stringBytes(ctlUserPW.text) > gv.intDefUserPWMaxLen) {
+      setState(() {
+        gv.strLoginError = ls.gs('UserPWErrorMinMaxLen');
+      });
+      return;
+    }
 
     // Reset login result
     gv.aryLoginResult = [];
@@ -47,7 +62,7 @@ class _ClsLoginState extends State<ClsLogin> {
     });
 
     // Send to server that client wants to login
-    gv.socket.emit('LoginToServer', [ctlUserID.text, ctlUserPW.text]);
+    gv.socket.emit('LoginToServer', [ctlUserID.text, ctlUserPW.text, true]);
 
     // Start Login Time in ms
     gv.timLogin = DateTime.now().millisecondsSinceEpoch;
@@ -60,14 +75,14 @@ class _ClsLoginState extends State<ClsLogin> {
           // this means the server didnt return any value
           if (DateTime.now().millisecondsSinceEpoch - gv.timLogin > 5000) {
             gv.bolLoading = false;
-            print('Login Fail');
+            //ut.showToast(ls.gs('LoginFailed'));
+            gv.strLoginError = ls.gs('LoginErrorTimeout');
             if (gv.bolLoading != bolLoadingLast) {
               bolLoadingLast = gv.bolLoading;
               setState(() {
                 gv.bolLoading = false;
               });
             }
-            ut.showToast(ls.gs('LoginFailed'));
           } else {
             // Continue Loading
             gv.bolLoading = true;
@@ -105,18 +120,20 @@ class _ClsLoginState extends State<ClsLogin> {
             gv.gstrCurPage = 'SettingsMain';
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => StoreConnector<int, int>(
-                builder: (BuildContext context, int intTemp) {
-                  return new ClsSettingsMain(intTemp);
-                }, converter: (Store<int> sintTemp) {
-                return sintTemp.state;
-              })),
+              MaterialPageRoute(
+                  builder: (context) => StoreConnector<int, int>(
+                          builder: (BuildContext context, int intTemp) {
+                        return ClsSettingsMain(intTemp);
+                      }, converter: (Store<int> sintTemp) {
+                        return sintTemp.state;
+                      })),
             );
             Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
-
           } else if (gv.aryLoginResult[0] == '1000') {
             gv.bolLoading = false;
-            print('Login Fail: User ID/PW not correct');
+            // Show Login Failed
+            // ut.showToast(ls.gs('LoginFailed'));
+            gv.strLoginError = ls.gs('LoginErrorUserIDPassword');
             // Hide Loading
             if (gv.bolLoading != bolLoadingLast) {
               bolLoadingLast = gv.bolLoading;
@@ -124,27 +141,23 @@ class _ClsLoginState extends State<ClsLogin> {
                 gv.bolLoading = false;
               });
             }
-            // Show Login Failed
-            ut.showToast(ls.gs('LoginFailed'));
             // Do other things
 
           } else {
             // Other Error, Login Failed
             gv.bolLoading = false;
-            print('Login Fail: Other Error');
+            // Show Login Failed
+            gv.strLoginError = ls.gs('LoginErrorSystem');
             if (gv.bolLoading != bolLoadingLast) {
               bolLoadingLast = gv.bolLoading;
               setState(() {
                 gv.bolLoading = false;
               });
             }
-            // Show Login Failed
-            ut.showToast(ls.gs('LoginFailed'));
           }
         }
       }
-    }
-    );
+    });
   }
 
   void showAlert(BuildContext context, strTitle, strContent) {
@@ -171,13 +184,14 @@ class _ClsLoginState extends State<ClsLogin> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
               Text(' '),
-              Text(strErrMessage),
+              Text(gv.strLoginError, style: TextStyle(color: Colors.red)),
+              Text(' '),
               Text(' '),
               Row(
                 children: <Widget>[
                   Text(ut.Space(sv.gintSpaceTextField)),
                   Expanded(
-                    child: TextFormField(
+                    child: TextField(
                       controller: ctlUserID,
                       keyboardType: TextInputType.text,
                       autofocus: false,
@@ -258,7 +272,7 @@ class _ClsLoginState extends State<ClsLogin> {
         preferredSize: new Size.fromHeight(sv.dblTopHeight),
       ),
       body: ModalProgressHUD(child: Body(), inAsyncCall: gv.bolLoading),
-      bottomNavigationBar: gv.clsBottom,
+      bottomNavigationBar: ClsBottom(),
     );
   }
 }

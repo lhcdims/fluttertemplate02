@@ -10,6 +10,10 @@ import 'gv.dart';
 import 'LangStrings.dart';
 
 // Import Pages
+import 'Home.dart';
+import 'SettingsMain.dart';
+
+// Import Pages
 import 'SettingsMain.dart';
 
 // Class Bottom
@@ -37,7 +41,7 @@ class _ClsBottomState extends State<ClsBottom> {
           // Goto Home
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => gv.clsHome),
+            MaterialPageRoute(builder: (context) => ClsHome()),
           );
           Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
           break;
@@ -51,7 +55,7 @@ class _ClsBottomState extends State<ClsBottom> {
             context,
             MaterialPageRoute(builder: (context) => StoreConnector<int, int>(
                 builder: (BuildContext context, int intTemp) {
-                  return new ClsSettingsMain(intTemp);
+                  return ClsSettingsMain(intTemp);
                 }, converter: (Store<int> sintTemp) {
               return sintTemp.state;
             })),

@@ -11,11 +11,6 @@ import 'LangStrings.dart';
 import 'Utilities.dart';
 
 // Import Pages
-import 'bottom.dart';
-import 'Home.dart';
-import 'Login.dart';
-import 'SelectLanguage.dart';
-
 
 
 enum Actions { Increment } // The reducer, which takes the previous count and increments it in response to an Increment action.
@@ -29,13 +24,6 @@ int reducerSettingsMain(int intSomeInteger, dynamic action) {
 
 
 class gv {
-  // Declare All pages to be used
-  static ClsBottom clsBottom = ClsBottom();
-  static ClsHome clsHome = ClsHome();
-  static ClsLogin clsLogin = ClsLogin();
-  static ClsSelectLanguage clsSelectLanguage = ClsSelectLanguage();
-  //static ClsSettingsMain clsSettingsMain = ClsSettingsMain();
-
   // Current Page
   // gstrCurPage stores the Current Page to be loaded
   static var gstrCurPage = 'SelectLanguage';
@@ -55,6 +43,19 @@ class gv {
   // Set it to false to hide the 'Loading' Icon
   static bool bolLoading = false;
 
+
+
+
+  // Defaults
+
+  // Allow Duplicate Login?
+  // static const bool bolAllowDuplicateLogin = false;
+
+  // Min / Max of Fields
+  static const int intDefUserIDMinLen = 3;
+  static const int intDefUserIDMaxLen = 20;
+  static const int intDefUserPWMinLen = 6;
+  static const int intDefUserPWMaxLen = 20;
 
 
 
@@ -93,6 +94,7 @@ class gv {
   // Var For Login
   static var strLoginID = '';
   static var strLoginPW = '';
+  static var strLoginError = '';
   static var aryLoginResult = [];
   static var timLogin = DateTime.now().millisecondsSinceEpoch;
 
@@ -115,8 +117,6 @@ class gv {
       gbolSIOConnected = true;
       print('onConnect');
       ut.showToast(ls.gs('NetworkConnected'));
-      // pprint(data);
-      // sendMessage();
     });
     socket.onConnectError((data) {
       gbolSIOConnected = false;
@@ -142,9 +142,46 @@ class gv {
         print('login result timeout');
         return;
       }
-      aryLoginResult = data;
-      print('login result okay');
-      print('Result: ' + aryLoginResult[0]);
+      if (data[1] != true) {
+        // Not the First Time Login, but a Re-Login
+        // Change SettingsMain Login/Logout State
+        if (data[0] == '0000') {
+          // Re-Login Successful
+          // Nothing Changed
+        } else {
+          // Re-Login Failed
+          strLoginID = '';
+          strLoginPW = '';
+          setString('strLoginID', strLoginID);
+          setString('strLoginPW', strLoginPW);
+          if (gstrCurPage == 'SettingsMain') {
+            storeSettingsMain.dispatch(Actions.Increment);
+          }
+          // Display Toast Message
+
+        }
+
+      } else {
+        // First Time Login, return aryLoginResult
+        aryLoginResult = data;
+        }
+    });
+
+
+    socket.on('ForceLogoutByServer', (data) {
+      // Force Logout By Server (Duplicate Login)
+
+      // Clear User ID
+      strLoginID = '';
+      strLoginPW = '';
+      setString('strLoginID', strLoginID);
+      setString('strLoginPW', strLoginPW);
+
+      // Show Long Toast
+      ut.showToast(ls.gs('LoginErrorReLogin'), true);
+
+      // Reset States
+      resetStates();
     });
 
     socket.connect();
@@ -155,7 +192,7 @@ class gv {
 
     // Check Login Again if strLoginID != ''
     if (strLoginID != '') {
-
+      gv.socket.emit('LoginToServer', [strLoginID, strLoginPW, false]);
     }
   } // End of initSocket()
 
@@ -174,18 +211,19 @@ class gv {
 
 
 
-  // Send Message
-  static void sendMessage() {
-    if (socket != null) {
-      print('sending message...');
-      socket.emit('message', [
-        'Hello world!',
-        1908,
-        {
-          'wonder': 'Woman',
-          'comincs': ['DC', 'Marvel']
-        }
-      ]);
+  // Reset All variables
+  static void resetVars() {
+    strLoginError = '';
+  }
+
+  // Reset All states
+  static void resetStates() {
+    switch (gstrCurPage) {
+      case 'SettingsMain':
+        storeSettingsMain.dispatch(Actions.Increment);
+        break;
+      default:
+        break;
     }
   }
 }  // End of class gv

@@ -8,6 +8,12 @@ import 'gv.dart';
 import 'LangStrings.dart';
 import 'tmpSettings.dart';
 
+// Import Pages
+import 'bottom.dart';
+import 'Login.dart';
+import 'SelectLanguage.dart';
+
+
 // Home Page
 class ClsSettingsMain extends StatelessWidget {
   final intState;
@@ -34,13 +40,14 @@ class ClsSettingsMain extends StatelessWidget {
       case 'SelectLanguage':
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => gv.clsSelectLanguage),
+          MaterialPageRoute(builder: (context) => ClsSelectLanguage()),
         );
         break;
       case 'Login':
+        gv.resetVars();
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => gv.clsLogin),
+          MaterialPageRoute(builder: (context) => ClsLogin()),
         );
         break;
       case 'Logout':
@@ -124,7 +131,7 @@ class ClsSettingsMain extends StatelessWidget {
               }),
         ),
       ),
-      bottomNavigationBar: gv.clsBottom,
+      bottomNavigationBar: ClsBottom(),
     );
   }
 }

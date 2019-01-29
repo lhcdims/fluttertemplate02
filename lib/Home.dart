@@ -4,9 +4,11 @@
 import 'package:flutter/material.dart';
 
 // Import Self Darts
-import 'gv.dart';
 import 'LangStrings.dart';
 import 'tmpSettings.dart';
+
+// Import Pages
+import 'bottom.dart';
 
 // Home Page
 class ClsHome extends StatefulWidget {
@@ -47,7 +49,7 @@ class _ClsHomeState extends State<ClsHome> {
           ),
         ),
       ),
-      bottomNavigationBar: gv.clsBottom,
+      bottomNavigationBar: ClsBottom(),
     );
   }
 }

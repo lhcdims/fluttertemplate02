@@ -3,6 +3,7 @@ var gbolDebug = true;
 var aryClients = [];
 var fs = require('fs');
 var intHBTimeout = 30000;
+var bolAllowDuplicateLogin = false;
 
 // Date Related
 //var dateTime = require('node-datetime');
@@ -191,8 +192,8 @@ socketAll.on('connection', function (socket) {
     });
 
 
-    socket.on('LoginToServer', function (strUsrID, strUsrPW) {
-        funCheckLogin(strUsrID, strUsrPW, socket.id);
+    socket.on('LoginToServer', function (strUsrID, strUsrPW, bolFirstTime) {
+        funCheckLogin(strUsrID, strUsrPW, socket.id, bolFirstTime);
     });
 
     socket.on('LogoutFromServer', function (data) {
@@ -234,39 +235,61 @@ funCheckHB();
 
 
 // Check Login
-function funCheckLogin(strUsrID, strUsrPW, socketID) {
-    let sql = 'Select usr_id, usr_nick, usr_status, usr_picture From userid where usr_id = ? AND usr_pw = ?';
-    pool.getConnection(function (err, connection) {
-        connection.query(sql, [strUsrID, strUsrPW], function (err, result) {
-            if (err) {
-                pool.releaseConnection(connection);
-                throw err;
-            } else {
-                // Save result value
-                let aryResult = ['0000', result];
-                pool.releaseConnection(connection);
-                if (result.length === 0) {
-                    aryResult[0] = '1000';
+function funCheckLogin(strUsrID, strUsrPW, socketID, bolFirstTime) {
+    try {
+        let sql = 'Select usr_id, usr_nick, usr_status, usr_picture From userid where usr_id = ? AND usr_pw = ?';
+        pool.getConnection(function (err, connection) {
+            connection.query(sql, [strUsrID, strUsrPW], function (err, result) {
+                if (err) {
+                    pool.releaseConnection(connection);
+                    throw err;
                 } else {
-                    // Login Success, replace usr_id in aryClient
-                    funUpdateClientUserId(strUsrID, socketID);
+                    // Save result value
+                    let aryResult = ['0000', bolFirstTime, result];
+                    pool.releaseConnection(connection);
+                    if (result.length === 0) {
+                        aryResult[0] = '1000';
+                    } else {
+                        // Login Success, replace usr_id in aryClient
+                        funUpdateClientUserId(strUsrID, socketID);
+                    }
+                    socketAll.to(`${socketID}`).emit('LoginResult', aryResult);
                 }
-                socketAll.to(`${socketID}`).emit('LoginResult', aryResult);
-            }
+            });
         });
-    });
+    } catch (Err) {
+        socketAll.to(`${socketID}`).emit('LoginResult', ['9999', bolFirstTime, '9999']);
+    }
 }
 // Update aryClient when Login Success
 function funUpdateClientUserId(userid, socketID) {
-    for (let i = 0; i < aryClients.length; i++) {
-        if (aryClients[i].connectionCode === socketID) {
-            aryClients[i].userId = userid;
-            aryClients[i].lastHB = Date.now();
-            funUpdateServerMonitor("Update User ID: " + userid + " from Socket ID: " + socketID, true);
-            break;
+    try {
+        for (let i = 0; i < aryClients.length; i++) {
+            if (aryClients[i].connectionCode === socketID) {
+                aryClients[i].userId = userid;
+                aryClients[i].lastHB = Date.now();
+                funUpdateServerMonitor("Update User ID: " + userid + " from Socket ID: " + socketID, true);
+                break;
+            }
         }
+        // socketAll.emit("ServerUpdateUserList", aryClients);
+
+        if (!bolAllowDuplicateLogin) {
+            // Duplicate Login is not allowed
+            // Remove all other Login Users with the same userid
+            for (let i = 0; i < aryClients.length; i++) {
+                if (aryClients[i].connectionCode !== socketID && aryClients[i].userId === userid) {
+                    // Here same userID logined with another socket connection, we need to remove that connection
+                    socketAll.to(`${aryClients[i].connectionCode}`).emit('ForceLogoutByServer', ['9001']);
+                    funUpdateServerMonitor("Duplicate Login ID: " + aryClients[i].userId + " removed with Socket ID: " + aryClients[i].connectionCode, true);
+                    // Clear UserID of this socket connection
+                    aryClients[i].userId = '';
+                }
+            }
+        }
+    } catch (err) {
+        funUpdateServerMonitor("funUpdateClientUserId Unexpected Error: " + err, true);
     }
-    // socketAll.emit("ServerUpdateUserList", aryClients);
 }
 // Logout From Server
 function funLogout(socketID) {
@@ -278,7 +301,7 @@ function funLogout(socketID) {
             }
         }
     } catch (err) {
-        //
+        funUpdateServerMonitor("funLogout Unexpected Error: " + err, true);
     }
 }
 

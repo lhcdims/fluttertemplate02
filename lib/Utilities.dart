@@ -7,8 +7,6 @@ import 'package:fluttertoast/fluttertoast.dart';
 // Import Self Darts
 import 'tmpSettings.dart';
 
-
-
 // Class Utilities
 class ut {
   // Function to return no. of space
@@ -19,8 +17,6 @@ class ut {
     }
     return strResult;
   }
-
-
 
   // The following function shows a message on the Top Area of the screen, by the Flutter Plugin fluttertoast
   // This message will be displayed for a few seconds (and Longer if the 2nd parm is true)
@@ -34,5 +30,19 @@ class ut {
       textColor: Colors.lightBlue,
       fontSize: sv.dblDefaultFontSize,
     );
+  }
+
+  static int stringBytes(String c) {
+    var n = c.length, s;
+    var len = 0;
+    for (var i = 0; i < n; i++) {
+      s = c.codeUnitAt(i);
+      if (s > 255) {
+        len += 2;
+      } else {
+        len += 1;
+      }
+    }
+    return len;
   }
 }

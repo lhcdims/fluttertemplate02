@@ -12,6 +12,7 @@ import 'tmpSettings.dart';
 import 'Utilities.dart';
 
 // Import Pages
+import 'bottom.dart';
 import 'SettingsMain.dart';
 
 // Home Page
@@ -107,7 +108,7 @@ class _ClsSelectLanguageState extends State<ClsSelectLanguage> {
               }),
         ),
       ),
-      bottomNavigationBar: gv.clsBottom,
+      bottomNavigationBar: ClsBottom(),
     );
   }
 }

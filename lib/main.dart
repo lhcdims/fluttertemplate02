@@ -1,13 +1,18 @@
-// import flutter darts
+// Import Flutter Darts
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:redux/redux.dart';
 
-// import self darts
+// Import Self Darts
 import 'gv.dart';
 import 'LangStrings.dart';
 import 'tmpSettings.dart';
+
+// Import Pages
+import 'Home.dart';
+import 'Login.dart';
+import 'SelectLanguage.dart';
 import 'SettingsMain.dart';
 
 // Main Program
@@ -76,18 +81,18 @@ class MainBody extends StatelessWidget {
     // Here Return Page According to gv.gstrCurPage
     switch (gv.gstrCurPage) {
       case 'Home':
-        return gv.clsHome;
+        return ClsHome();
         break;
       case 'Login':
-        return gv.clsLogin;
+        return ClsLogin();
         break;
       case 'SelectLanguage':
-        return gv.clsSelectLanguage;
+        return ClsSelectLanguage();
         break;
       case 'SettingsMain':
         return StoreConnector<int, int>(
           builder: (BuildContext context, int intTemp) {
-            return new ClsSettingsMain(intTemp);
+            return ClsSettingsMain(intTemp);
           }, converter: (Store<int> sintTemp) {
           return sintTemp.state;
         },);
@@ -95,12 +100,12 @@ class MainBody extends StatelessWidget {
       case 'Logout':
         return StoreConnector<int, int>(
           builder: (BuildContext context, int intTemp) {
-            return new ClsSettingsMain(intTemp);
+            return ClsSettingsMain(intTemp);
           }, converter: (Store<int> sintTemp) {
           return sintTemp.state;
         },);
         break;
     }
-    return gv.clsHome;
+    return ClsHome();
   }
 }
