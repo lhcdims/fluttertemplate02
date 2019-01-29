@@ -1,11 +1,14 @@
 // import flutter darts
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_redux/flutter_redux.dart';
+import 'package:redux/redux.dart';
 
 // import self darts
 import 'gv.dart';
 import 'LangStrings.dart';
 import 'tmpSettings.dart';
+import 'SettingsMain.dart';
 
 // Main Program
 void main() {
@@ -19,6 +22,8 @@ void main() {
     gv.Init().then((_) {
       // Get Previous Selected Language from SharedPreferences, if any
       gv.gstrLang = gv.getString('strLang');
+      gv.strLoginID = gv.getString('strLoginID');
+      gv.strLoginPW = gv.getString('strLoginPW');
       if (gv.gstrLang != '') {
         // Set Current Language
         ls.setLang(gv.gstrLang);
@@ -54,27 +59,18 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      // Disable Show Debug
-      debugShowCheckedModeBanner: false,
+    return StoreProvider(
+      store: gv.storeSettingsMain,
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false, // Disable Show Debug
 
-      home: MainBody(),
+        home: MainBody(),
+      ),
     );
   }
 }
 
-class MainBody extends StatefulWidget {
-  @override
-  _MainBodyState createState() => _MainBodyState();
-}
-
-class _MainBodyState extends State<MainBody> {
-  @override
-  initState() {
-    super.initState();
-    // Add listeners to this class, if any
-  }
-
+class MainBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Here Return Page According to gv.gstrCurPage
@@ -89,7 +85,20 @@ class _MainBodyState extends State<MainBody> {
         return gv.clsSelectLanguage;
         break;
       case 'SettingsMain':
-        return gv.clsSettingsMain;
+        return StoreConnector<int, int>(
+          builder: (BuildContext context, int intTemp) {
+            return new ClsSettingsMain(intTemp);
+          }, converter: (Store<int> sintTemp) {
+          return sintTemp.state;
+        },);
+        break;
+      case 'Logout':
+        return StoreConnector<int, int>(
+          builder: (BuildContext context, int intTemp) {
+            return new ClsSettingsMain(intTemp);
+          }, converter: (Store<int> sintTemp) {
+          return sintTemp.state;
+        },);
         break;
     }
     return gv.clsHome;

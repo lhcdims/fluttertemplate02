@@ -9,26 +9,20 @@ import 'LangStrings.dart';
 import 'tmpSettings.dart';
 
 // Home Page
-class ClsSettingsMain extends StatefulWidget {
-  @override
-  _ClsSettingsMainState createState() => _ClsSettingsMainState();
-}
+class ClsSettingsMain extends StatelessWidget {
+  final intState;
 
-class _ClsSettingsMainState extends State<ClsSettingsMain> {
+  ClsSettingsMain(this.intState);
+
+  // Vars for SettingsMain
   static var listSettingsMain = [
     // list of Buttons in this page
     {'Prog': 'SelectLanguage'},
     {'Prog': 'Login'},
   ];
 
-  @override
-  initState() {
-    super.initState();
-    // Add listeners to this class, if any
-  }
-
   // Choose which page when button pressed
-  void funSettingsMain(strProg) {
+  void funSettingsMain(strProg, context) {
     // Set LastPage
     gv.gstrLastPage = gv.gstrCurPage;
 
@@ -49,6 +43,20 @@ class _ClsSettingsMainState extends State<ClsSettingsMain> {
           MaterialPageRoute(builder: (context) => gv.clsLogin),
         );
         break;
+      case 'Logout':
+        // Do Logout
+        gv.strLoginID = '';
+        gv.strLoginPW = '';
+        gv.setString('strLoginID', gv.strLoginID);
+        gv.setString('strLoginPW', gv.strLoginPW);
+
+        // Increment storeSettingsMain to refresh page
+        gv.storeSettingsMain.dispatch(Actions.Increment);
+
+        // Call Server to Logout
+        gv.socket.emit('LogoutFromServer', []);
+
+        break;
       default:
         break;
     }
@@ -58,6 +66,12 @@ class _ClsSettingsMainState extends State<ClsSettingsMain> {
 
   @override
   Widget build(BuildContext context) {
+    // Set listSettingsMain according to gv.strLogin
+    if (gv.strLoginID == '') {
+      listSettingsMain[1]['Prog'] = 'Login';
+    } else {
+      listSettingsMain[1]['Prog'] = 'Logout';
+    }
     return Scaffold(
       appBar: PreferredSize(
         child: AppBar(
@@ -92,7 +106,7 @@ class _ClsSettingsMainState extends State<ClsSettingsMain> {
                             textColor: Colors.white,
                             color: Colors.greenAccent,
                             onPressed: () => funSettingsMain(
-                                listSettingsMain[index]['Prog']),
+                                listSettingsMain[index]['Prog'], context),
                             child: Text(
                                 '${ls.gs(listSettingsMain[index]['Prog'])}',
                                 style: TextStyle(

@@ -24,6 +24,7 @@ dependencies:
   adhara_socket_io:
   modal_progress_hud:
   fluttertoast: ^2.2.7
+  flutter_redux:
 
 dev_dependencies:
   flutter_test:

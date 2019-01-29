@@ -2,10 +2,15 @@
 
 // Import Flutter Darts
 import 'package:flutter/material.dart';
+import 'package:flutter_redux/flutter_redux.dart';
+import 'package:redux/redux.dart';
 
 // Import Self Darts
 import 'gv.dart';
 import 'LangStrings.dart';
+
+// Import Pages
+import 'SettingsMain.dart';
 
 // Class Bottom
 class ClsBottom extends StatefulWidget {
@@ -44,7 +49,12 @@ class _ClsBottomState extends State<ClsBottom> {
           // Goto SettingsMain
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => gv.clsSettingsMain),
+            MaterialPageRoute(builder: (context) => StoreConnector<int, int>(
+                builder: (BuildContext context, int intTemp) {
+                  return new ClsSettingsMain(intTemp);
+                }, converter: (Store<int> sintTemp) {
+              return sintTemp.state;
+            })),
           );
           Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
           break;

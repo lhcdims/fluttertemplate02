@@ -26,7 +26,7 @@ class ut {
   // This message will be displayed for a few seconds (and Longer if the 2nd parm is true)
   // The message will not affect other widgets!  So it is called a toast message.
   static void showToast(String strMsg, [bool bolLongToast = false]) {
-    Fluttertoast.instance.showToast(
+    Fluttertoast.showToast(
       msg: strMsg,
       toastLength: bolLongToast ? Toast.LENGTH_LONG : Toast.LENGTH_SHORT,
       gravity: ToastGravity.TOP,

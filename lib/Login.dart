@@ -6,12 +6,17 @@ import 'package:modal_progress_hud/modal_progress_hud.dart';
 import 'package:threading/threading.dart';
 import 'package:flutter/services.dart';
 import 'dart:async';
+import 'package:flutter_redux/flutter_redux.dart';
+import 'package:redux/redux.dart';
 
 // Import Self Darts
 import 'gv.dart';
 import 'LangStrings.dart';
 import 'tmpSettings.dart';
 import 'Utilities.dart';
+
+// Import Pages
+import 'SettingsMain.dart';
 
 // Login Page
 class ClsLogin extends StatefulWidget {
@@ -87,7 +92,27 @@ class _ClsLoginState extends State<ClsLogin> {
             }
             // Show Login success
             ut.showToast(ls.gs('LoginSuccess'));
-            // Do other things
+
+            // Save Login ID & PW in Memory
+            gv.strLoginID = ctlUserID.text;
+            gv.strLoginPW = ctlUserPW.text;
+
+            // Save Login ID & PW in SharedPreferences
+            gv.setString('strLoginID', gv.strLoginID);
+            gv.setString('strLoginPW', gv.strLoginPW);
+
+            // Goto SettingsMain
+            gv.gstrCurPage = 'SettingsMain';
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => StoreConnector<int, int>(
+                builder: (BuildContext context, int intTemp) {
+                  return new ClsSettingsMain(intTemp);
+                }, converter: (Store<int> sintTemp) {
+                return sintTemp.state;
+              })),
+            );
+            Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
 
           } else if (gv.aryLoginResult[0] == '1000') {
             gv.bolLoading = false;

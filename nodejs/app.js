@@ -2,6 +2,7 @@
 var gbolDebug = true;
 var aryClients = [];
 var fs = require('fs');
+var intHBTimeout = 30000;
 
 // Date Related
 //var dateTime = require('node-datetime');
@@ -152,32 +153,11 @@ socketAll.attach(serverClient);
 
 // var socketAll = ioClient.listen(serverClient);
 socketAll.on('connection', function (socket) {
-    funUpdateConsole("Client Connected, Socket ID: " + socket.id, false);
     funUpdateServerMonitor("Client Connected, Socket ID: " + socket.id, false);
-    socket.emit("UpdateYourSocketID", socket.id);
+    // socket.emit("UpdateYourSocketID", socket.id);
 
     // Add Connection to Array with Empty User ID
     aryClients.push({ connectionCode: socket.id, userId: '', lastHB: Date.now(), socket: socket});
-
-    socket.on('updateClientUserId', function (userid) {
-        let bolFound = false;
-        for (let i = 0; i < aryClients.length; i++) {
-            if (aryClients[i].connectionCode === socket.id) {
-                aryClients[i].userId = userid;
-                aryClients[i].lastHB = Date.now();
-                bolFound = true;
-                funUpdateConsole("Update User ID: " + userid + " from Socket ID: " + socket.id, true);
-            }
-        }
-        if (!bolFound) {
-            // Impossible
-            aryClients.push({ connectionCode: socket.id, userId: userid, lastHB: Date.now(), socket: socket});
-            funUpdateConsole("Add User ID: " + userid + " from Socket ID: " + socket.id, true);
-        }
-        socketAll.emit("ServerUpdateUserList", aryClients);
-        funUpdateConsole("ServerUpdateUserList SENT on UPDATE", true);
-    });
-
 
     socket.on('removeClientUserId', function (userid) {
         for (let i = 0; i < aryClients.length; i++) {
@@ -186,26 +166,23 @@ socketAll.on('connection', function (socket) {
                 funUpdateConsole("Remove User ID: " + userid + " from Socket ID: " + socket.id, true);
             }
         }
-        socketAll.emit("ServerUpdateUserList", aryClients);
-        funUpdateConsole("ServerUpdateUserList SENT on REMOVE", true);
+        // socketAll.emit("ServerUpdateUserList", aryClients);
     });
 
 
     socket.on('disconnect', function () {
-        funUpdateConsole("Client Disconnected, Socket ID: " + socket.id, false);
         funUpdateServerMonitor("Client Disconnected, Socket ID: " + socket.id, false);
         for (let i = 0; i < aryClients.length; i++) {
             if (aryClients[i].connectionCode === socket.id) {
                 aryClients.splice(i, 1);
             }
         }
-        socketAll.emit("ServerUpdateUserList", aryClients);
-        funUpdateConsole("ServerUpdateUserList SENT on DISCONNECT", true);
+        // socketAll.emit("ServerUpdateUserList", aryClients);
     });
 
 
     socket.on('HB', function (aryTemp) {
-        funUpdateServerMonitor("Heart Beat from Socket ID: " + socket.id, true);
+        //funUpdateServerMonitor("Heart Beat from Socket ID: " + socket.id, true);
         for (let i = 0; i < aryClients.length; i++) {
             if (aryClients[i].connectionCode === socket.id) {
                 aryClients[i].lastHB = Date.now();
@@ -215,10 +192,11 @@ socketAll.on('connection', function (socket) {
 
 
     socket.on('LoginToServer', function (strUsrID, strUsrPW) {
-        funUpdateServerMonitor("userID: " + strUsrID, true);
-        funUpdateServerMonitor("userPW: " + strUsrPW, true);
-
         funCheckLogin(strUsrID, strUsrPW, socket.id);
+    });
+
+    socket.on('LogoutFromServer', function (data) {
+        funLogout(socket.id);
     });
 
     // Catch any unexpected error, to avoid system hangs
@@ -226,59 +204,89 @@ socketAll.on('connection', function (socket) {
 });
 // Disconnect clients without HB
 function funCheckHB() {
-    let i = 0;
-    for (i = 0; i < aryClients.length; i++) {
-        try {
-            if (Date.now() > aryClients[i].lastHB + 30000) {
+    try {
+        for (let i = 0; i < aryClients.length; i++) {
+            if (Date.now() > aryClients[i].lastHB + intHBTimeout) {
                 funUpdateServerMonitor("No HB Disconnect: " + aryClients[i].connectionCode, true);
                 aryClients[i].socket.disconnect();
             }
-        } catch (err) {
-            // If someone disconnect, there will be an error because aryClients.length changes
-            // funUpdateServerMonitor("No HB Disconnect Error: " + err, true);
         }
+    } catch (err) {
+        // If someone disconnect, there will be an error because aryClients.length changes
+        // funUpdateServerMonitor("No HB Disconnect Error: " + err, true);
     }
+
     // let dtTemp = Date.now();
-    setTimeout(funCheckHB, 30000);
+    setTimeout(funCheckHB, intHBTimeout);
 }
 funCheckHB();
 
 
-// SQL Command Insert
+
+
+
+
+
+
+
+
+// SQL Related
+
+
+// Check Login
 function funCheckLogin(strUsrID, strUsrPW, socketID) {
     let sql = 'Select usr_id, usr_nick, usr_status, usr_picture From userid where usr_id = ? AND usr_pw = ?';
-
-    // The following use pool instead of con
-    //con.connect(function (err) {
-    //    if (err) throw err;
-    //    console.log("MySQL Connected!");
-    //});
     pool.getConnection(function (err, connection) {
         connection.query(sql, [strUsrID, strUsrPW], function (err, result) {
-                if (err) {
-                    pool.releaseConnection(connection);
-                    throw err;
+            if (err) {
+                pool.releaseConnection(connection);
+                throw err;
+            } else {
+                // Save result value
+                let aryResult = ['0000', result];
+                pool.releaseConnection(connection);
+                if (result.length === 0) {
+                    aryResult[0] = '1000';
                 } else {
-                    // Save result value
-                    let aryResult = ['0000', result];
-                    try {
-                        funUpdateServerMonitor("LoginToServer Result: " + aryResult[1]['usr_id'], true);
-                        funUpdateServerMonitor("LoginToServer Result Length: " + result.length, true);
-                    } catch (err) {
-                        //
-                    }
-
-
-                    pool.releaseConnection(connection);
-
-                    if (result.length === 0) {
-                        aryResult[0] = '1000';
-                    }
-                    socketAll.to(`${socketID}`).emit('LoginResult', aryResult);
+                    // Login Success, replace usr_id in aryClient
+                    funUpdateClientUserId(strUsrID, socketID);
                 }
-            });
+                socketAll.to(`${socketID}`).emit('LoginResult', aryResult);
+            }
         });
+    });
 }
+// Update aryClient when Login Success
+function funUpdateClientUserId(userid, socketID) {
+    for (let i = 0; i < aryClients.length; i++) {
+        if (aryClients[i].connectionCode === socketID) {
+            aryClients[i].userId = userid;
+            aryClients[i].lastHB = Date.now();
+            funUpdateServerMonitor("Update User ID: " + userid + " from Socket ID: " + socketID, true);
+            break;
+        }
+    }
+    // socketAll.emit("ServerUpdateUserList", aryClients);
+}
+// Logout From Server
+function funLogout(socketID) {
+    try {
+        for (let i = 0; i < aryClients.length; i++) {
+            if (aryClients[i].connectionCode == socketID) {
+                aryClients[i].userId = '';
+                break;
+            }
+        }
+    } catch (err) {
+        //
+    }
+}
+
+
+
+
+
+
 
 
 

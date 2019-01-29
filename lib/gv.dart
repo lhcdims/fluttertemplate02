@@ -4,6 +4,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:threading/threading.dart';
 import 'package:adhara_socket_io/adhara_socket_io.dart';
+import 'package:redux/redux.dart';
 
 // Import Self Darts
 import 'LangStrings.dart';
@@ -14,7 +15,18 @@ import 'bottom.dart';
 import 'Home.dart';
 import 'Login.dart';
 import 'SelectLanguage.dart';
-import 'SettingsMain.dart';
+
+
+
+enum Actions { Increment } // The reducer, which takes the previous count and increments it in response to an Increment action.
+int reducerSettingsMain(int intSomeInteger, dynamic action) {
+  if (action == Actions.Increment) {
+    return intSomeInteger + 1;
+  }
+  return intSomeInteger;
+}
+
+
 
 class gv {
   // Declare All pages to be used
@@ -22,7 +34,7 @@ class gv {
   static ClsHome clsHome = ClsHome();
   static ClsLogin clsLogin = ClsLogin();
   static ClsSelectLanguage clsSelectLanguage = ClsSelectLanguage();
-  static ClsSettingsMain clsSettingsMain = ClsSettingsMain();
+  //static ClsSettingsMain clsSettingsMain = ClsSettingsMain();
 
   // Current Page
   // gstrCurPage stores the Current Page to be loaded
@@ -43,6 +55,19 @@ class gv {
   // Set it to false to hide the 'Loading' Icon
   static bool bolLoading = false;
 
+
+
+
+
+  // Declare STORE here for Redux
+
+  // Store for SettingsMain
+  static Store<int> storeSettingsMain = new Store<int>(reducerSettingsMain, initialState: 0);
+
+
+
+
+
   // Declare SharedPreferences
   static SharedPreferences pref;
   static Init() async {
@@ -62,7 +87,12 @@ class gv {
 
 
 
+
+
+
   // Var For Login
+  static var strLoginID = '';
+  static var strLoginPW = '';
   static var aryLoginResult = [];
   static var timLogin = DateTime.now().millisecondsSinceEpoch;
 
@@ -74,6 +104,8 @@ class gv {
   static const String URI = 'http://thisapp.zephan.top:10531';
   static bool gbolSIOConnected = false;
   static SocketIO socket;
+  static int intSocketTimout = 5000;
+  static int intHBInterval = 5000;
 
   static initSocket() async {
     if (!gbolSIOConnected) {
@@ -103,15 +135,10 @@ class gv {
       print('onDisconnect');
       ut.showToast(ls.gs('NetworkDisconnected'));
     });
-    socket.on('UpdateYourSocketID', (data) {
-      print('strLogin: ' + data);
-    });
 
     socket.on('LoginResult', (data) {
-      // set loading
-      //bolLoading = false;
       // Check if the result comes back too late
-      if (DateTime.now().millisecondsSinceEpoch - timLogin > 5000) {
+      if (DateTime.now().millisecondsSinceEpoch - timLogin > intSocketTimout) {
         print('login result timeout');
         return;
       }
@@ -122,19 +149,33 @@ class gv {
 
     socket.connect();
 
-    var threadHB = new Thread(funTimerHeartBeat);    // Create a new thread to simulate an External Event that changes a global variable defined in gv.dart
+    // Create a thread to send HeartBeat
+    var threadHB = new Thread(funTimerHeartBeat);
     threadHB.start();
-  }
-  static void funTimerHeartBeat() async {  // The following function simulates an External Event  e.g. a global variable is changed by socket.io and see how all widgets react with this global variable
+
+    // Check Login Again if strLoginID != ''
+    if (strLoginID != '') {
+
+    }
+  } // End of initSocket()
+
+
+
+  // HeartBeat Timer
+  static void funTimerHeartBeat() async {
     while (true) {
-      await Thread.sleep(5000);
+      await Thread.sleep(intHBInterval);
       if (socket != null) {
-        print('Sending HB...' + socket.id.toString());
+        print('Sending HB...' + DateTime.now().toString());
         socket.emit('HB',[0]);
       }
     }
-  }
-  sendMessage() {
+  } // End of funTimerHeartBeat()
+
+
+
+  // Send Message
+  static void sendMessage() {
     if (socket != null) {
       print('sending message...');
       socket.emit('message', [
@@ -145,13 +186,6 @@ class gv {
           'comincs': ['DC', 'Marvel']
         }
       ]);
-      socket.emit('message', [
-        {
-          'wonder': 'Woman',
-          'comincs': ['DC', 'Marvel']
-        }
-      ]);
     }
   }
-
-}
+}  // End of class gv

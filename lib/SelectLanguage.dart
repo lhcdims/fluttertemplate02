@@ -2,12 +2,17 @@
 
 // Import Flutter Darts
 import 'package:flutter/material.dart';
+import 'package:flutter_redux/flutter_redux.dart';
+import 'package:redux/redux.dart';
 
 // Import Self Darts
 import 'gv.dart';
 import 'LangStrings.dart';
 import 'tmpSettings.dart';
 import 'Utilities.dart';
+
+// Import Pages
+import 'SettingsMain.dart';
 
 // Home Page
 class ClsSelectLanguage extends StatefulWidget {
@@ -38,7 +43,12 @@ class _ClsSelectLanguageState extends State<ClsSelectLanguage> {
     // Code to Goto Next Page
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => gv.clsSettingsMain),
+      MaterialPageRoute(builder: (context) => StoreConnector<int, int>(
+          builder: (BuildContext context, int intTemp) {
+            return new ClsSettingsMain(intTemp);
+          }, converter: (Store<int> sintTemp) {
+        return sintTemp.state;
+      })),
     );
     // Since no need to go back to this page,
     // Reset routes here
