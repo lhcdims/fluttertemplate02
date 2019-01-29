@@ -25,6 +25,7 @@ class ls {
   // vars for English
   static var listStrings_EN = [
     // General
+    { 'Title':'ForgetPassword', 'Content':'Forget Password'},
     { 'Title':'Home', 'Content':'Home'},
     { 'Title':'Login', 'Content':'Login'},
     { 'Title':'LoginErrorLoginAgain', 'Content':'Login Failed: Pls. login again'},
@@ -34,6 +35,7 @@ class ls {
     { 'Title':'LoginErrorUserIDPassword', 'Content':'Login Failed: User ID & Password does not match'},
     { 'Title':'LoginSuccess', 'Content':'Login Success'},
     { 'Title':'Logout', 'Content':'Logout'},
+    { 'Title':'Register', 'Content':'Register'},
     { 'Title':'NetworkConnected', 'Content':'Network Connected'},
     { 'Title':'NetworkDisconnected', 'Content':'Network Disonnected'},
     { 'Title':'SelectLanguage', 'Content':'Select Language'},
@@ -50,6 +52,7 @@ class ls {
   // vars for Simplified Chinese
   static var listStrings_SC = [
     // General
+    { 'Title':'ForgetPassword', 'Content':'忘记密码'},
     { 'Title':'Home', 'Content':'首页'},
     { 'Title':'Login', 'Content':'登录'},
     { 'Title':'LoginErrorLoginAgain', 'Content':'登入失败：请重新登入'},
@@ -59,6 +62,7 @@ class ls {
     { 'Title':'LoginErrorUserIDPassword', 'Content':'登入失败：账户ID 及 密码不匹配'},
     { 'Title':'LoginSuccess', 'Content':'登入成功'},
     { 'Title':'Logout', 'Content':'登出'},
+    { 'Title':'Register', 'Content':'注册'},
     { 'Title':'NetworkConnected', 'Content':'已连接网络'},
     { 'Title':'NetworkDisconnected', 'Content':'网络已断开'},
     { 'Title':'SelectLanguage', 'Content':'选择语言'},
@@ -75,6 +79,7 @@ class ls {
   // vars for Traditional Chinese
   static var listStrings_TC = [
     // General
+    { 'Title':'ForgetPassword', 'Content':'忘記密碼'},
     { 'Title':'Home', 'Content':'首頁'},
     { 'Title':'Login', 'Content':'登錄'},
     { 'Title':'LoginErrorLoginAgain', 'Content':'登入失敗：請重新登入'},
@@ -84,6 +89,7 @@ class ls {
     { 'Title':'LoginErrorUserIDPassword', 'Content':'登入失敗：賬戶 ID 及 密碼不匹配'},
     { 'Title':'LoginSuccess', 'Content':'登入成功'},
     { 'Title':'Logout', 'Content':'登出'},
+    { 'Title':'Register', 'Content':'註冊'},
     { 'Title':'NetworkConnected', 'Content':'已連接網絡'},
     { 'Title':'NetworkDisconnected', 'Content':'網絡已斷開'},
     { 'Title':'SelectLanguage', 'Content':'選擇語言'},

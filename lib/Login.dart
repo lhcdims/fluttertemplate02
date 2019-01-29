@@ -33,20 +33,25 @@ class _ClsLoginState extends State<ClsLogin> {
     super.initState();
     // Add listeners to this class, if any
   }
-
+  void funLoginRegister() {
+  }
+  void funLoginForgetPW() {
+  }
   void funLoginPressed() {
     gv.resetVars();
 
     bool bolLoadingLast = true;
 
     // Validate Input
-    if (ut.stringBytes(ctlUserID.text) < gv.intDefUserIDMinLen || ut.stringBytes(ctlUserID.text) > gv.intDefUserIDMaxLen) {
+    if (ut.stringBytes(ctlUserID.text) < gv.intDefUserIDMinLen ||
+        ut.stringBytes(ctlUserID.text) > gv.intDefUserIDMaxLen) {
       setState(() {
         gv.strLoginError = ls.gs('UserIDErrorMinMaxLen');
       });
       return;
     }
-    if (ut.stringBytes(ctlUserPW.text) < gv.intDefUserPWMinLen || ut.stringBytes(ctlUserPW.text) > gv.intDefUserPWMaxLen) {
+    if (ut.stringBytes(ctlUserPW.text) < gv.intDefUserPWMinLen ||
+        ut.stringBytes(ctlUserPW.text) > gv.intDefUserPWMaxLen) {
       setState(() {
         gv.strLoginError = ls.gs('UserPWErrorMinMaxLen');
       });
@@ -243,13 +248,52 @@ class _ClsLoginState extends State<ClsLogin> {
                         textColor: Colors.white,
                         color: Colors.greenAccent,
                         onPressed: () => funLoginPressed(),
-                        child: Text('Login',
+                        child: Text(ls.gs('Login'),
                             style:
                                 TextStyle(fontSize: sv.dblDefaultFontSize * 1)),
                       ),
                     ),
                   ),
                   Text(ut.Space(sv.gintSpaceBigButton)),
+                ],
+              ),
+              Text(' '),
+              Text(' '),
+              Row(
+                children: <Widget>[
+                  Text(ut.Space(5)),
+                  Expanded(
+                    child: SizedBox(
+                      height: sv.dblDefaultFontSize * 2.5,
+                      child: FlatButton(
+                          textColor: Colors.blue,
+                          onPressed: () => funLoginRegister(),
+                          child: Text(
+                            ls.gs('Register'),
+                            style: TextStyle(
+                              fontSize: sv.dblDefaultFontSize * 1,
+                              decoration: TextDecoration.underline,
+                            ),
+                          )),
+                    ),
+                  ),
+                  Text(ut.Space(5)),
+                  Expanded(
+                    child: SizedBox(
+                      height: sv.dblDefaultFontSize * 2.5,
+                      child: FlatButton(
+                          textColor: Colors.blue,
+                          onPressed: () => funLoginForgetPW(),
+                          child: Text(
+                            ls.gs('ForgetPassword'),
+                            style: TextStyle(
+                              fontSize: sv.dblDefaultFontSize * 1,
+                              decoration: TextDecoration.underline,
+                            ),
+                          )),
+                    ),
+                  ),
+                  Text(ut.Space(5)),
                 ],
               ),
             ],

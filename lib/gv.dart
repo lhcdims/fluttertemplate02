@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:threading/threading.dart';
 import 'package:adhara_socket_io/adhara_socket_io.dart';
 import 'package:redux/redux.dart';
+import 'package:connectivity/connectivity.dart';
 
 // Import Self Darts
 import 'LangStrings.dart';
@@ -69,10 +70,22 @@ class gv {
 
 
 
-  // Declare SharedPreferences
+
+  // Declare SharedPreferences && Connectivity
+  static var NetworkStatus;
   static SharedPreferences pref;
   static Init() async {
     pref = await SharedPreferences.getInstance();
+    NetworkStatus = await (Connectivity().checkConnectivity());
+    // Detect Connectivity
+
+    if (NetworkStatus == ConnectivityResult.mobile) {
+      // I am connected to a mobile network.
+      print('Mobile Network');
+    } else if (NetworkStatus == ConnectivityResult.wifi) {
+      // I am connected to a wifi network.
+      print('WiFi Network');
+    }
   }
   static getString(strKey) {
     var strResult = '';
