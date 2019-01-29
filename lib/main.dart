@@ -12,6 +12,7 @@ import 'tmpSettings.dart';
 // Import Pages
 import 'Home.dart';
 import 'Login.dart';
+import 'Register.dart';
 import 'SelectLanguage.dart';
 import 'SettingsMain.dart';
 
@@ -85,6 +86,9 @@ class MainBody extends StatelessWidget {
         break;
       case 'Login':
         return ClsLogin();
+        break;
+      case 'Register':
+        return ClsRegister();
         break;
       case 'SelectLanguage':
         return ClsSelectLanguage();

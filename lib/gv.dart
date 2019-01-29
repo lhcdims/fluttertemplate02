@@ -57,6 +57,8 @@ class gv {
   static const int intDefUserIDMaxLen = 20;
   static const int intDefUserPWMinLen = 6;
   static const int intDefUserPWMaxLen = 20;
+  static const int intDefUserNickMinLen = 3;
+  static const int intDefUserNickMaxLen = 20;
 
 
 
@@ -111,8 +113,10 @@ class gv {
   static var aryLoginResult = [];
   static var timLogin = DateTime.now().millisecondsSinceEpoch;
 
-
-
+  // Var For Register
+  static var strRegisterError = ls.gs('EmailAddressRegisterWarning');
+  static var aryRegisterResult = [];
+  static var timRegister = DateTime.now().millisecondsSinceEpoch;
 
 
   // socket.io related
@@ -227,6 +231,7 @@ class gv {
   // Reset All variables
   static void resetVars() {
     strLoginError = '';
+    strRegisterError = ls.gs('EmailAddressRegisterWarning');
   }
 
   // Reset All states
