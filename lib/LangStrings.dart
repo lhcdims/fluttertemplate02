@@ -26,6 +26,7 @@ class ls {
   static var listStrings_EN = [
     // General
     { 'Title':'EmailAddress', 'Content':'Email Address'},
+    { 'Title':'EmailAddressFormatError', 'Content':'Email Address is not in the correct format'},
     { 'Title':'EmailAddressRegisterWarning', 'Content':'An Activation Code will be sent to you via Email'},
     { 'Title':'ForgetPassword', 'Content':'Forget Password'},
     { 'Title':'Home', 'Content':'Home'},
@@ -63,6 +64,7 @@ class ls {
   static var listStrings_SC = [
     // General
     { 'Title':'EmailAddress', 'Content':'电邮地址'},
+    { 'Title':'EmailAddressFormatError', 'Content':'电邮地址格式不正确'},
     { 'Title':'EmailAddressRegisterWarning', 'Content':'激活码将会透过电邮发送给您'},
     { 'Title':'ForgetPassword', 'Content':'忘记密码'},
     { 'Title':'Home', 'Content':'首页'},
@@ -100,6 +102,7 @@ class ls {
   static var listStrings_TC = [
     // General
     { 'Title':'EmailAddress', 'Content':'電郵地址'},
+    { 'Title':'EmailAddressFormatError', 'Content':'電郵地址格式不正確'},
     { 'Title':'EmailAddressRegisterWarning', 'Content':'激活碼將會透過電郵發送給您'},
     { 'Title':'ForgetPassword', 'Content':'忘記密碼'},
     { 'Title':'Home', 'Content':'首頁'},

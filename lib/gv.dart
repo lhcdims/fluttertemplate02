@@ -53,12 +53,16 @@ class gv {
   // static const bool bolAllowDuplicateLogin = false;
 
   // Min / Max of Fields
+  // User ID from 3 to 20 Bytes
   static const int intDefUserIDMinLen = 3;
   static const int intDefUserIDMaxLen = 20;
+  // Password from 6 to 20 Bytes
   static const int intDefUserPWMinLen = 6;
   static const int intDefUserPWMaxLen = 20;
+  // Nick Name from 3 to 20 Bytes
   static const int intDefUserNickMinLen = 3;
   static const int intDefUserNickMaxLen = 20;
+  static const int intDefEmailMaxLen = 60;
 
 
 
@@ -123,7 +127,7 @@ class gv {
   static const String URI = 'http://thisapp.zephan.top:10531';
   static bool gbolSIOConnected = false;
   static SocketIO socket;
-  static int intSocketTimout = 5000;
+  static int intSocketTimeout = 5000;
   static int intHBInterval = 5000;
 
   static initSocket() async {
@@ -155,7 +159,7 @@ class gv {
 
     socket.on('LoginResult', (data) {
       // Check if the result comes back too late
-      if (DateTime.now().millisecondsSinceEpoch - timLogin > intSocketTimout) {
+      if (DateTime.now().millisecondsSinceEpoch - timLogin > intSocketTimeout) {
         print('login result timeout');
         return;
       }
@@ -200,6 +204,17 @@ class gv {
       // Reset States
       resetStates();
     });
+
+
+    socket.on('RegisterResult', (data) {
+      // Check if the result comes back too late
+      if (DateTime.now().millisecondsSinceEpoch - timRegister > intSocketTimeout) {
+        print('Register result timeout');
+        return;
+      }
+      aryRegisterResult = data;
+    });
+
 
     socket.connect();
 

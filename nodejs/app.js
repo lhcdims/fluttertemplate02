@@ -5,10 +5,18 @@ var fs = require('fs');
 var intHBTimeout = 30000;
 var bolAllowDuplicateLogin = false;
 
-// Date Related
-//var dateTime = require('node-datetime');
-//var dt = dateTime.create();
-//dt.format('YYYY-MM-DD HH:mm:ss');
+// Email Related
+var nodemailer = require('nodemailer');
+var transporter = nodemailer.createTransport({
+    host: "smtp.mxhichina.com",
+    port: 465,
+    secure: true, // true for 465, false for other ports
+    auth: {
+      user: 'info@zephan.top', // generated ethereal user
+      pass: fs.readFileSync('infoATzephan.top.txt').toString().replace(/\n/g, '') // generated ethereal password
+    }
+});
+
 
 Date.prototype.Format = function (fmt) { //author: meizz
     let o = {
@@ -200,6 +208,10 @@ socketAll.on('connection', function (socket) {
         funLogout(socket.id);
     });
 
+    socket.on('Register', function (strUsrID, strUsrPW, strUsrNick, strUsrEmail, strLang) {
+        funCheckRegister(strUsrID, strUsrPW, strUsrNick, strUsrEmail, socket.id, strLang);
+    });
+
     // Catch any unexpected error, to avoid system hangs
     socket.on('error', function () { });
 });
@@ -242,7 +254,7 @@ function funCheckLogin(strUsrID, strUsrPW, socketID, bolFirstTime) {
             connection.query(sql, [strUsrID, strUsrPW], function (err, result) {
                 if (err) {
                     pool.releaseConnection(connection);
-                    throw err;
+                    // throw err;
                 } else {
                     // Save result value
                     let aryResult = ['0000', bolFirstTime, result];
@@ -304,7 +316,133 @@ function funLogout(socketID) {
         funUpdateServerMonitor("funLogout Unexpected Error: " + err, true);
     }
 }
+// Register Check Existing UserID
+function funCheckRegister(strUsrID, strUsrPW, strUsrNick, strUsrEmail, socketID, strLang) {
+    try {
+        let sql = 'SELECT usr_id FROM userid WHERE usr_id = ?';
+        pool.getConnection(function (err, connection) {
+            connection.query(sql, [strUsrID], function (err, result) {
+                if (err) {
+                    pool.releaseConnection(connection);
+                    // throw err;
+                } else {
+                    // Save result value
+                    let aryResult = ['0000', result];
+                    pool.releaseConnection(connection);
+                    if (result.length === 0) {
+                        // Not Found, Add New Record
+                        funAddNewUser(strUsrID, strUsrPW, strUsrNick, strUsrEmail, socketID, strLang);
+                    } else {
+                        // Record Found, return Error
+                        aryResult[0] = '1000';
+                        socketAll.to(`${socketID}`).emit('RegisterResult', aryResult);
+                    }
+                }
+            });
+        });
+    } catch (Err) {
+        socketAll.to(`${socketID}`).emit('RegisterResult', ['9999', '9999']);
+    }
+}
+// Add New User
+function funAddNewUser(strUsrID, strUsrPW, strUsrNick, strUsrEmail, socketID, strLang) {
+    try {
+        let sql = 'INSERT INTO userid (usr_id, usr_nick, usr_pw, usr_email, usr_joindt, usr_status, usr_confirmcode) VALUES (?, ?, ?, ?, ?, ?, ?)';
+        let strTempDate = new Date().Format("yyyy-MM-dd hh:mm:ss.S");
+        let strTempStatus = 'A';
+        let strTempRandom = funGenRandomNumber(6);
+        pool.getConnection(function (err, connection) {
+            connection.query(sql, [strUsrID, strUsrNick, strUsrPW, strUsrEmail, strTempDate, strTempStatus, strTempRandom], function (err, result) {
+                if (err) {
+                    pool.releaseConnection(connection);
+                    // throw err;
+                } else {
+                    // Save result value
+                    let aryResult = ['0000', result];
+                    pool.releaseConnection(connection);
+                    if (result.length !== 0) {
+                        // Record Added
+                        socketAll.to(`${socketID}`).emit('RegisterResult', aryResult);
 
+                        // Send Email
+                        funSendEmail(strUsrID, strUsrNick, strUsrEmail, strTempRandom, strLang);
+                    } else {
+                        // Record Not Added, System Error
+                        socketAll.to(`${socketID}`).emit('RegisterResult', ['9999', '9999']);
+                    }
+                }
+            });
+        });
+    } catch (Err) {
+        socketAll.to(`${socketID}`).emit('RegisterResult', ['9999', '9999']);
+    }
+}
+function funSendEmail(strUsrID, strUsrNick, strUsrEmail, strTempRandom, strLang) {
+    try {
+        let strSubject = '';
+        let strText = '';
+        let strHTML = '';
+        switch (strLang) {
+            case 'EN':
+                strSubject = 'Account Activation Email';
+                strHTML = 'Dear ' + strUsrNick + ',<br><br>';
+                strHTML += 'You have created an User ID: ' + strUsrID + '<br><br>';
+                strHTML += 'The Activation Code is: ' + strTempRandom + '<br><br>';
+                strHTML += 'Please use the Activation Code inside your mobile phone app to activate your account, thank you.<br><br>';
+                strHTML += 'Best Regards, <br><br>';
+                strHTML += 'info@zephan.top';
+                strText = 'Dear ' + strUsrNick + ',\n\n';
+                strText += 'You have created an User ID: ' + strUsrID + '\n\n';
+                strText += 'The Activation Code is: ' + strTempRandom + '\n\n';
+                strText += 'Please use the Activation Code inside your mobile phone app to activate your account, thank you.\n\n';
+                strText += 'Best Regards, \n\n';
+                strText += 'info@zephan.top';
+                break;
+            case 'SC':
+                strSubject = '账户激活邮件';
+                strHTML = strUsrNick + ' 您好,<br><br>';
+                strHTML += '您注册了一个新的账号：' + strUsrID + '<br><br>';
+                strHTML += '激活码是：' + strTempRandom + '<br><br>';
+                strHTML += '请在手机 App 内使用激活码激活账户，谢谢。<br><br>';
+                strHTML += 'info@zephan.top';
+                strText = strUsrNick + ' 您好,\n\n';
+                strText += '您注册了一个新的账号：' + strUsrID + '\n\n';
+                strText += '激活码是：' + strTempRandom + '\n\n';
+                strText += '请在手机 App 内使用激活码激活账户，谢谢。\n\n';
+                strText += 'info@zephan.top';
+                break;
+            default:
+                strSubject = '賬戶激活郵件';
+                strHTML = strUsrNick + ' 您好,<br><br>';
+                strHTML += '您註冊了一個新的賬號：' + strUsrID + '<br><br>';
+                strHTML += '激活碼是：' + strTempRandom + '<br><br>';
+                strHTML += '請在手機 App 內使用激活碼激活賬戶，謝謝。<br><br>';
+                strHTML += 'info@zephan.top';
+                strText = strUsrNick + ' 您好,\n\n';
+                strText += '您註冊了一個新的賬號：' + strUsrID + '\n\n';
+                strText += '激活碼是：' + strTempRandom + '\n\n';
+                strText += '請在手機 App 內使用激活碼激活賬戶，謝謝。\n\n';
+                strText += 'info@zephan.top';
+                break;
+        }
+        let mailOptions = {
+            from: 'info@zephan.top',
+            to: strUsrEmail,
+            subject: strSubject,
+            text: strText,
+            html: strHTML
+        };
+        transporter.sendMail(mailOptions, function(error, info){
+            if (error) {
+                // console.log(error);
+            } else {
+                // console.log('Email sent: ' + info.response);
+            }
+        });
+    } catch (err) {
+        // Send Email System Error
+    }
+}
 
 
 
@@ -315,6 +453,29 @@ function funLogout(socketID) {
 
 
 // Support Functions
+
+
+function funGenRandomNumber(intLength) {
+    let strTemp = "";
+    let codeChars = new Array(1, 2, 3, 4, 5, 6, 7, 8, 9, 0);
+    for (let i = 0; i < intLength; i++) {
+        let charNum = Math.floor(Math.random() * 10);
+        strTemp += codeChars[charNum];
+    }
+    return strTemp;
+}
+function funGenRandomString(intLength) {
+    let strTemp = "";
+    let codeChars = new Array(1, 2, 3, 4, 5, 6, 7, 8, 9,
+        'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'k', 'm', 'n', 'p', 'q', 'r', 's', 't', 'w', 'x', 'y', 'z',
+        'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'W', 'X', 'Y', 'Z'); //所有候选组成验证码的字符，当然也可以用中文的
+    for (let i = 0; i < intLength; i++) {
+        let charNum = Math.floor(Math.random() * 51);
+        strTemp += codeChars[charNum];
+    }
+    return strTemp;
+}
+
 
 
 // Encode String to UTF-8

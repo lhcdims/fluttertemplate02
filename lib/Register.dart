@@ -68,6 +68,18 @@ class _ClsRegisterState extends State<ClsRegister> {
       });
       return;
     }
+    if (!ut.isEmail(ctlUserEmail.text)) {
+      setState(() {
+        gv.strRegisterError = ls.gs('EmailAddressFormatError');
+      });
+      return;
+    }
+    if (ut.stringBytes(ctlUserEmail.text) > gv.intDefEmailMaxLen) {
+      setState(() {
+        gv.strRegisterError = ls.gs('EmailAddressFormatError');
+      });
+      return;
+    }
     if (ut.stringBytes(ctlUserPW.text) < gv.intDefUserPWMinLen ||
         ut.stringBytes(ctlUserPW.text) > gv.intDefUserPWMaxLen) {
       setState(() {
@@ -99,7 +111,7 @@ class _ClsRegisterState extends State<ClsRegister> {
     });
 
     // Send to server that client wants to login
-    gv.socket.emit('Register', [ctlUserID.text, ctlUserPW.text, ctlUserNick.text, ctlUserEmail.text]);
+    gv.socket.emit('Register', [ctlUserID.text, ctlUserPW.text, ctlUserNick.text, ctlUserEmail.text, gv.gstrLang]);
 
     // Start Login Time in ms
     gv.timRegister = DateTime.now().millisecondsSinceEpoch;
@@ -110,7 +122,7 @@ class _ClsRegisterState extends State<ClsRegister> {
         // Use string to check if it is array
         if (gv.aryRegisterResult.toString() == '[]') {
           // this means the server didnt return any value
-          if (DateTime.now().millisecondsSinceEpoch - gv.timRegister > gv.intSocketTimout) {
+          if (DateTime.now().millisecondsSinceEpoch - gv.timRegister > gv.intSocketTimeout) {
             gv.bolLoading = false;
             gv.strRegisterError = ls.gs('RegisterErrorTimeout');
             if (gv.bolLoading != bolLoadingLast) {

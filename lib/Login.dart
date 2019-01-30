@@ -98,7 +98,7 @@ class _ClsLoginState extends State<ClsLogin> {
         // Use string to check if it is array
         if (gv.aryLoginResult.toString() == '[]') {
           // this means the server didnt return any value
-          if (DateTime.now().millisecondsSinceEpoch - gv.timLogin > gv.intSocketTimout) {
+          if (DateTime.now().millisecondsSinceEpoch - gv.timLogin > gv.intSocketTimeout) {
             gv.bolLoading = false;
             //ut.showToast(ls.gs('LoginFailed'));
             gv.strLoginError = ls.gs('LoginErrorTimeout');
