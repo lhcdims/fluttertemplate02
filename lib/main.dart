@@ -11,6 +11,7 @@ import 'tmpSettings.dart';
 
 // Import Pages
 import 'Activate.dart';
+import 'ChangePassword.dart';
 import 'Home.dart';
 import 'Login.dart';
 import 'PersonalInformation.dart';
@@ -107,6 +108,9 @@ class MainBody extends StatelessWidget {
     switch (gv.gstrCurPage) {
       case 'ActivateAccount':
         return ClsActivateAccount();
+        break;
+      case 'ChangePassword':
+        return ClsChangePassword();
         break;
       case 'Home':
         return ClsHome();

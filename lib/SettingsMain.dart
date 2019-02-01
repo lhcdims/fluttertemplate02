@@ -13,6 +13,7 @@ import 'Utilities.dart';
 
 // Import Pages
 import 'Activate.dart';
+import 'ChangePassword.dart';
 import 'bottom.dart';
 import 'Login.dart';
 import 'PersonalInformation.dart';
@@ -47,6 +48,13 @@ class ClsSettingsMain extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => ClsActivateAccount()),
+        );
+        break;
+      case 'ChangePassword':
+        gv.resetVars();
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => ClsChangePassword()),
         );
         break;
       case 'PersonalInformation':
@@ -120,6 +128,7 @@ class ClsSettingsMain extends StatelessWidget {
           // list of Buttons in this page
           {'Prog': 'SelectLanguage'},
           {'Prog': 'PersonalInformation'},
+          {'Prog': 'ChangePassword'},
           {'Prog': 'ActivateAccount'},
           {'Prog': 'Logout'},
         ];
@@ -128,6 +137,7 @@ class ClsSettingsMain extends StatelessWidget {
           // list of Buttons in this page
           {'Prog': 'SelectLanguage'},
           {'Prog': 'PersonalInformation'},
+          {'Prog': 'ChangePassword'},
           {'Prog': 'Logout'},
         ];
       }

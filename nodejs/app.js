@@ -228,6 +228,10 @@ socketAll.on('connection', function (socket) {
         funChangePerInfo(strUsrID, strUsrNick, strUsrEmail, bolEmailChanged, socket.id, strLang)
     });
 
+    socket.on('ChangePassword', function (strUsrID, strUsrPWOld, strUsrPW) {
+        funChangePassword(strUsrID, strUsrPWOld, strUsrPW, socket.id)
+    });
+
     // Catch any unexpected error, to avoid system hangs
     socket.on('error', function () { });
 });
@@ -376,7 +380,7 @@ function funAddNewUser(strUsrID, strUsrPW, strUsrNick, strUsrEmail, socketID, st
                     // Save result value
                     let aryResult = ['0000', result];
                     pool.releaseConnection(connection);
-                    if (result.length !== 0) {
+                    if (result['affectedRows'] !== 0) {
                         // Record Added
                         socketAll.to(`${socketID}`).emit('RegisterResult', aryResult);
 
@@ -511,7 +515,7 @@ function funActivateSQL(strUsrID, socketID) {
                     // Save result value
                     let aryResult = ['0000', result];
                     pool.releaseConnection(connection);
-                    if (result.length !== 0) {
+                    if (result['affectedRows'] !== 0) {
                         // Record Added
                         socketAll.to(`${socketID}`).emit('ActivateResult', aryResult);
                     } else {
@@ -605,11 +609,11 @@ function funChangePerInfo(strUsrID, strUsrNick, strUsrEmail, bolEmailChanged, so
                     // Save result value
                     let aryResult = ['0000', result];
                     pool.releaseConnection(connection);
-                    if (result.length !== 0) {
+                    if (result['affectedRows'] !== 0) {
                         // Record Updated
                         socketAll.to(`${socketID}`).emit('ChangePerInfoResult', aryResult);
 
-                        if (bolEmailChanged) {
+                       if (bolEmailChanged) {
                             // Send Email Again
                             funSendEmail(strUsrID, strUsrNick, strUsrEmail, strTempRandom, strLang);
                         }
@@ -622,6 +626,35 @@ function funChangePerInfo(strUsrID, strUsrNick, strUsrEmail, bolEmailChanged, so
         });
     } catch (Err) {
         socketAll.to(`${socketID}`).emit('ChangePerInfoResult', ['9999', '9999']);
+    }
+}
+// Change Password
+function funChangePassword(strUsrID, strUsrPWOld, strUsrPW, socketID) {
+    try {
+        let sql = "UPDATE userid SET usr_pw = ? WHERE usr_id = ? AND usr_pw = ?";
+        let arySQL = [strUsrPW, strUsrID, strUsrPWOld];
+        pool.getConnection(function (err, connection) {
+            connection.query(sql, arySQL, function (err, result) {
+                if (err) {
+                    pool.releaseConnection(connection);
+                    // throw err;
+                } else {
+                    // Save result value
+                    let aryResult = ['0000', result];
+                    pool.releaseConnection(connection);
+                    if (result['affectedRows'] !== 0) {
+                        // Record Updated
+                        socketAll.to(`${socketID}`).emit('ChangePasswordResult', aryResult);
+                    } else {
+                        // Old Password Not Correct
+                        aryResult[0] = '1000';
+                        socketAll.to(`${socketID}`).emit('ChangePasswordResult', aryResult);
+                    }
+                }
+            });
+        });
+    } catch (Err) {
+        socketAll.to(`${socketID}`).emit('ChangePasswordResult', ['9999', '9999']);
     }
 }
 

@@ -1,6 +1,7 @@
 // This program stores ALL global variables required by ALL darts
 
 // Import Flutter Darts
+import 'dart:convert';
 import 'package:adhara_socket_io/adhara_socket_io.dart';
 import 'package:connectivity/connectivity.dart';
 import 'package:flutter/material.dart';
@@ -132,6 +133,11 @@ class gv {
   static var ctlPerInfoUserEmail = TextEditingController();
   static bool bolPerInfoFirstCall = false;
 
+  // Var For Change Password
+  static var strChangePWError = '';
+  static var aryChangePWResult = [];
+  static var timChangePW = DateTime.now().millisecondsSinceEpoch;
+
   // socket.io related
   static const String URI = 'http://thisapp.zephan.top:10531';
   static bool gbolSIOConnected = false;
@@ -176,6 +182,7 @@ class gv {
       ut.showToast(ls.gs('NetworkDisconnected'));
     });
 
+
     socket.on('LoginResult', (data) {
       // Check if the result comes back too late
       if (DateTime.now().millisecondsSinceEpoch - timLogin > intSocketTimeout) {
@@ -217,6 +224,7 @@ class gv {
       }
     });
 
+
     socket.on('ForceLogoutByServer', (data) {
       // Force Logout By Server (Duplicate Login)
 
@@ -234,6 +242,7 @@ class gv {
       resetStates();
     });
 
+
     socket.on('RegisterResult', (data) {
       // Check if the result comes back too late
       if (DateTime.now().millisecondsSinceEpoch - timRegister >
@@ -243,6 +252,7 @@ class gv {
       }
       aryRegisterResult = data;
     });
+
 
     socket.on('ActivateResult', (data) {
       // Check if the result comes back too late
@@ -254,6 +264,7 @@ class gv {
       aryActivateResult = data;
     });
 
+
     socket.on('SendEmailAgainResult', (data) {
       // Check if the result comes back too late
       if (DateTime.now().millisecondsSinceEpoch - timActivate >
@@ -263,6 +274,7 @@ class gv {
       }
       aryActivateResult = data;
     });
+
 
     socket.on('GetPerInfoResult', (data) {
       // Check if the result comes back too late
@@ -290,6 +302,18 @@ class gv {
         return;
       }
       aryPerInfoResult = data;
+    });
+
+
+    socket.on('ChangePasswordResult', (data) {
+      // Check if the result comes back too late
+      if (DateTime.now().millisecondsSinceEpoch - timChangePW >
+          intSocketTimeout) {
+        print('ChangePassword Result Timeout');
+        return;
+      }
+      aryChangePWResult = data;
+      print('Change Password Result: ' + jsonEncode(data));
     });
 
 
