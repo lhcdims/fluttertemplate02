@@ -12,21 +12,21 @@ var transporter = nodemailer.createTransport({
     port: 465,
     secure: true, // true for 465, false for other ports
     auth: {
-      user: 'info@zephan.top', // generated ethereal user
-      pass: fs.readFileSync('infoATzephan.top.txt').toString().replace(/\n/g, '') // generated ethereal password
+      user: 'info@zephan.top', // Email User Name
+      pass: fs.readFileSync('infoATzephan.top.txt').toString().replace(/\n/g, '') // Email Password stored in a file in the same directory of app.js
     }
 });
 
 
 Date.prototype.Format = function (fmt) { //author: meizz
     let o = {
-        "M+": this.getMonth() + 1, //月份
-        "d+": this.getDate(), //日
-        "h+": this.getHours(), //小时
-        "m+": this.getMinutes(), //分
-        "s+": this.getSeconds(), //秒
-        "q+": Math.floor((this.getMonth() + 3) / 3), //季度
-        "S": this.getMilliseconds() //毫秒
+        "M+": this.getMonth() + 1, // Month
+        "d+": this.getDate(), // Day
+        "h+": this.getHours(), // Hour
+        "m+": this.getMinutes(), // Minute
+        "s+": this.getSeconds(), // Seconds
+        "q+": Math.floor((this.getMonth() + 3) / 3), // Quarter
+        "S": this.getMilliseconds() // Milliseconds
     };
     if (/(y+)/.test(fmt)) fmt = fmt.replace(RegExp.$1, (this.getFullYear() + "").substr(4 - RegExp.$1.length));
     for (let k in o)
@@ -200,6 +200,14 @@ socketAll.on('connection', function (socket) {
     });
 
 
+    socket.on('ActivateToServer', function (strUsrID, strActCode) {
+        funActivate(strUsrID, strActCode, socket.id);
+    });
+
+    socket.on('SendEmailAgain', function (strUsrID, strLang) {
+        funSendEmailAgain(strUsrID, strLang, socket.id);
+    });
+
     socket.on('LoginToServer', function (strUsrID, strUsrPW, bolFirstTime) {
         funCheckLogin(strUsrID, strUsrPW, socket.id, bolFirstTime);
     });
@@ -210,6 +218,14 @@ socketAll.on('connection', function (socket) {
 
     socket.on('Register', function (strUsrID, strUsrPW, strUsrNick, strUsrEmail, strLang) {
         funCheckRegister(strUsrID, strUsrPW, strUsrNick, strUsrEmail, socket.id, strLang);
+    });
+
+    socket.on('GetPerInfo', function (strUsrID) {
+        funGetPerInfo(strUsrID, socket.id);
+    });
+
+    socket.on('ChangePerInfo', function (strUsrID, strUsrNick, strUsrEmail, bolEmailChanged, strLang) {
+        funChangePerInfo(strUsrID, strUsrNick, strUsrEmail, bolEmailChanged, socket.id, strLang)
     });
 
     // Catch any unexpected error, to avoid system hangs
@@ -443,7 +459,171 @@ function funSendEmail(strUsrID, strUsrNick, strUsrEmail, strTempRandom, strLang)
         // Send Email System Error
     }
 }
+// Activate
+function funActivate(strUsrID, strActCode, socketID) {
+    try {
+        let sql = 'SELECT usr_id, usr_status FROM userid WHERE usr_id = ? AND usr_confirmcode = ?';
+        pool.getConnection(function (err, connection) {
+            connection.query(sql, [strUsrID, strActCode], function (err, result) {
+                if (err) {
+                    pool.releaseConnection(connection);
+                    // throw err;
+                } else {
+                    // Save result value
+                    let aryResult = ['0000', result];
+                    pool.releaseConnection(connection);
+                    if (result.length === 0) {
+                        // Activate Code Not Correct
+                        aryResult[0] = '0300';
+                        socketAll.to(`${socketID}`).emit('ActivateResult', aryResult);
+                    } else {
+                        // User Found, check user status
+                        if (result[0]['usr_status'] == 'E') {
+                            // Already Activate, Return
+                            aryResult[0] = '0100';
+                            socketAll.to(`${socketID}`).emit('ActivateResult', aryResult);
+                        } else if (result[0]['usr_status'] == 'D') {
+                            // Account Disabled, Return
+                            aryResult[0] = '0200';
+                            socketAll.to(`${socketID}`).emit('ActivateResult', aryResult);
+                        } else {
+                            // Not Yet Activate, Activate Now
+                           funActivateSQL(strUsrID, socketID);
+                        }
+                    }
+                }
+            });
+        });
+    } catch (Err) {
+        socketAll.to(`${socketID}`).emit('ActivateResult', ['9999', '9999']);
+    }
+}
+// Activate Account SQL
+function funActivateSQL(strUsrID, socketID) {
+    try {
+        let sql = "UPDATE userid SET usr_status = 'E' WHERE usr_id = ?";
+        pool.getConnection(function (err, connection) {
+            connection.query(sql, [strUsrID], function (err, result) {
+                if (err) {
+                    pool.releaseConnection(connection);
+                    // throw err;
+                } else {
+                    // Save result value
+                    let aryResult = ['0000', result];
+                    pool.releaseConnection(connection);
+                    if (result.length !== 0) {
+                        // Record Added
+                        socketAll.to(`${socketID}`).emit('ActivateResult', aryResult);
+                    } else {
+                        // Record Not Updated, System Error
+                        socketAll.to(`${socketID}`).emit('ActivateResult', ['9999', '9999']);
+                    }
+                }
+            });
+        });
+    } catch (Err) {
+        socketAll.to(`${socketID}`).emit('ActivateResult', ['9999', '9999']);
+    }
+}
+// Send Email Again
+function funSendEmailAgain(strUsrID, strLang, socketID) {
+    try {
+        let sql = 'SELECT usr_id, usr_nick, usr_email, usr_confirmcode FROM userid WHERE usr_id = ?';
+        pool.getConnection(function (err, connection) {
+            connection.query(sql, [strUsrID], function (err, result) {
+                if (err) {
+                    pool.releaseConnection(connection);
+                    // throw err;
+                } else {
+                    // Save result value
+                    let aryResult = ['0000', result];
+                    pool.releaseConnection(connection);
+                    if (result.length === 0) {
+                        // User Not Found, Impossible
+                        aryResult[0] = '9999';
+                        socketAll.to(`${socketID}`).emit('SendEmailAgainResult', aryResult);
+                    } else {
+                        // User Found, Send Email Again
+                        funSendEmail(strUsrID, result[0]['usr_nick'], result[0]['usr_email'], result[0]['usr_confirmcode'], strLang);
+                        socketAll.to(`${socketID}`).emit('SendEmailAgainResult', aryResult);
+                    }
+                }
+            });
+        });
+    } catch (Err) {
+        socketAll.to(`${socketID}`).emit('SendEmailAgainResult', ['9999', '9999']);
+    }
+}
+// Get Personal Information
+function funGetPerInfo(strUsrID, socketID) {
+    try {
+        let sql = 'SELECT usr_id, usr_nick, usr_email FROM userid WHERE usr_id = ?';
+        pool.getConnection(function (err, connection) {
+            connection.query(sql, [strUsrID], function (err, result) {
+                if (err) {
+                    pool.releaseConnection(connection);
+                    // throw err;
+                } else {
+                    // Save result value
+                    let aryResult = ['0000', result];
+                    pool.releaseConnection(connection);
+                    if (result.length === 0) {
+                        // User Not Found, Impossible
+                        aryResult[0] = '9999';
+                        socketAll.to(`${socketID}`).emit('GetPerInfoResult', aryResult);
+                    } else {
+                        // User Found
+                        socketAll.to(`${socketID}`).emit('GetPerInfoResult', aryResult);
+                    }
+                }
+            });
+        });
+    } catch (Err) {
+        socketAll.to(`${socketID}`).emit('GetPerInfoResult', ['9999', '9999']);
+    }
+}
+// Change Personal Info
+function funChangePerInfo(strUsrID, strUsrNick, strUsrEmail, bolEmailChanged, socketID, strLang) {
+    try {
+        let strTempRandom = '';
+        let sql = '';
+        let arySQL = [];
+        if (bolEmailChanged) {
+            strTempRandom = funGenRandomNumber(6);
+            sql = "UPDATE userid SET usr_nick = ?, usr_email = ?, usr_confirmcode = ?, usr_status = 'A' WHERE usr_id = ?";
+            arySQL = [strUsrNick, strUsrEmail, strTempRandom, strUsrID];
+        } else {
+            sql = "UPDATE userid SET usr_nick = ? WHERE usr_id = ?";
+            arySQL = [strUsrNick, strUsrID];
+        }
+        pool.getConnection(function (err, connection) {
+            connection.query(sql, arySQL, function (err, result) {
+                if (err) {
+                    pool.releaseConnection(connection);
+                    // throw err;
+                } else {
+                    // Save result value
+                    let aryResult = ['0000', result];
+                    pool.releaseConnection(connection);
+                    if (result.length !== 0) {
+                        // Record Updated
+                        socketAll.to(`${socketID}`).emit('ChangePerInfoResult', aryResult);
 
+                        if (bolEmailChanged) {
+                            // Send Email Again
+                            funSendEmail(strUsrID, strUsrNick, strUsrEmail, strTempRandom, strLang);
+                        }
+                    } else {
+                        // Record Not Updated, System Error
+                        socketAll.to(`${socketID}`).emit('ChangePerInfoResult', ['9999', '9999']);
+                    }
+                }
+            });
+        });
+    } catch (Err) {
+        socketAll.to(`${socketID}`).emit('ChangePerInfoResult', ['9999', '9999']);
+    }
+}
 
 
 

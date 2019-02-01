@@ -2,15 +2,20 @@
 
 // Import Flutter Darts
 import 'package:flutter/material.dart';
+import 'package:redux/redux.dart';
+import 'package:flutter_redux/flutter_redux.dart';
 
 // Import Self Darts
 import 'gv.dart';
 import 'LangStrings.dart';
 import 'tmpSettings.dart';
+import 'Utilities.dart';
 
 // Import Pages
+import 'Activate.dart';
 import 'bottom.dart';
 import 'Login.dart';
+import 'PersonalInformation.dart';
 import 'SelectLanguage.dart';
 
 
@@ -28,7 +33,7 @@ class ClsSettingsMain extends StatelessWidget {
   ];
 
   // Choose which page when button pressed
-  void funSettingsMain(strProg, context) {
+  void funSettingsMain (strProg, context) {
     // Set LastPage
     gv.gstrLastPage = gv.gstrCurPage;
 
@@ -37,6 +42,34 @@ class ClsSettingsMain extends StatelessWidget {
 
     // Code to Goto Next Page
     switch (strProg) {
+      case 'ActivateAccount':
+        gv.resetVars();
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => ClsActivateAccount()),
+        );
+        break;
+      case 'PersonalInformation':
+        if (!gv.bolLoading) {
+
+          // Check Network Connection
+          if (!gv.gbolSIOConnected) {
+            ut.showToast(ls.gs('NetworkDisconnectedTryLater'), true);
+            return;
+          }
+
+          gv.bolPerInfoFirstCall = true;
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => StoreConnector<int, int>(
+                builder: (BuildContext context, int intTemp) {
+                  return ClsPersonalInformation(intTemp);
+                }, converter: (Store<int> sintTemp) {
+              return sintTemp.state;
+            })),
+          );
+        };
+        break;
       case 'SelectLanguage':
         Navigator.push(
           context,
@@ -54,6 +87,7 @@ class ClsSettingsMain extends StatelessWidget {
         // Do Logout
         gv.strLoginID = '';
         gv.strLoginPW = '';
+        gv.strLoginStatus = '';
         gv.setString('strLoginID', gv.strLoginID);
         gv.setString('strLoginPW', gv.strLoginPW);
 
@@ -75,9 +109,28 @@ class ClsSettingsMain extends StatelessWidget {
   Widget build(BuildContext context) {
     // Set listSettingsMain according to gv.strLogin
     if (gv.strLoginID == '') {
-      listSettingsMain[1]['Prog'] = 'Login';
+      listSettingsMain = [
+        // list of Buttons in this page
+        {'Prog': 'SelectLanguage'},
+        {'Prog': 'Login'},
+      ];
     } else {
-      listSettingsMain[1]['Prog'] = 'Logout';
+      if (gv.strLoginStatus == 'A') {
+        listSettingsMain = [
+          // list of Buttons in this page
+          {'Prog': 'SelectLanguage'},
+          {'Prog': 'PersonalInformation'},
+          {'Prog': 'ActivateAccount'},
+          {'Prog': 'Logout'},
+        ];
+      } else {
+        listSettingsMain = [
+          // list of Buttons in this page
+          {'Prog': 'SelectLanguage'},
+          {'Prog': 'PersonalInformation'},
+          {'Prog': 'Logout'},
+        ];
+      }
     }
     return Scaffold(
       appBar: PreferredSize(

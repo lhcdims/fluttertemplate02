@@ -1,11 +1,10 @@
 // This program display the Register Page
 
 // Import Flutter Darts
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
 import 'package:threading/threading.dart';
-import 'package:flutter/services.dart';
-import 'dart:async';
 
 // Import Self Darts
 import 'gv.dart';
@@ -24,8 +23,6 @@ class ClsRegister extends StatefulWidget {
 }
 
 class _ClsRegisterState extends State<ClsRegister> {
-  int intCounter = 0;
-
   @override
   initState() {
     super.initState();
@@ -49,147 +46,118 @@ class _ClsRegisterState extends State<ClsRegister> {
 
 
   void funRegisterPressed() {
-    gv.resetVars();
+    if (!gv.bolLoading) {
+      gv.resetVars();
 
-    bool bolLoadingLast = true;
+      // Validate Input
+      if (ut.stringBytes(ctlUserID.text) < gv.intDefUserIDMinLen ||
+          ut.stringBytes(ctlUserID.text) > gv.intDefUserIDMaxLen) {
+        setState(() {
+          gv.strRegisterError = ls.gs('UserIDErrorMinMaxLen');
+        });
+        return;
+      }
+      if (ut.stringBytes(ctlUserNick.text) < gv.intDefUserNickMinLen ||
+          ut.stringBytes(ctlUserNick.text) > gv.intDefUserNickMaxLen) {
+        setState(() {
+          gv.strRegisterError = ls.gs('UserNickErrorMinMaxLen');
+        });
+        return;
+      }
+      if (!ut.isEmail(ctlUserEmail.text)) {
+        setState(() {
+          gv.strRegisterError = ls.gs('EmailAddressFormatError');
+        });
+        return;
+      }
+      if (ut.stringBytes(ctlUserEmail.text) > gv.intDefEmailMaxLen) {
+        setState(() {
+          gv.strRegisterError = ls.gs('EmailAddressFormatError');
+        });
+        return;
+      }
+      if (ut.stringBytes(ctlUserPW.text) < gv.intDefUserPWMinLen ||
+          ut.stringBytes(ctlUserPW.text) > gv.intDefUserPWMaxLen) {
+        setState(() {
+          gv.strRegisterError = ls.gs('UserPWErrorMinMaxLen');
+        });
+        return;
+      }
+      if (ut.stringBytes(ctlUserPW.text) != ut.stringBytes(ctlUserPWConfirm.text)) {
+        setState(() {
+          gv.strRegisterError = ls.gs('RegisterErrorConfirmPassword');
+        });
+        return;
+      }
 
-    // Validate Input
-    if (ut.stringBytes(ctlUserID.text) < gv.intDefUserIDMinLen ||
-        ut.stringBytes(ctlUserID.text) > gv.intDefUserIDMaxLen) {
+      // Check Network Connection
+      if (!gv.gbolSIOConnected) {
+        setState(() {
+          gv.strRegisterError = ls.gs('NetworkDisconnectedTryLater');
+        });
+        return;
+      }
+
+      // Reset register result
+      gv.aryRegisterResult = [];
+
+      // Show Loading
       setState(() {
-        gv.strRegisterError = ls.gs('UserIDErrorMinMaxLen');
+        gv.bolLoading = true;
       });
-      return;
-    }
-    if (ut.stringBytes(ctlUserNick.text) < gv.intDefUserNickMinLen ||
-        ut.stringBytes(ctlUserNick.text) > gv.intDefUserNickMaxLen) {
-      setState(() {
-        gv.strRegisterError = ls.gs('UserNickErrorMinMaxLen');
-      });
-      return;
-    }
-    if (!ut.isEmail(ctlUserEmail.text)) {
-      setState(() {
-        gv.strRegisterError = ls.gs('EmailAddressFormatError');
-      });
-      return;
-    }
-    if (ut.stringBytes(ctlUserEmail.text) > gv.intDefEmailMaxLen) {
-      setState(() {
-        gv.strRegisterError = ls.gs('EmailAddressFormatError');
-      });
-      return;
-    }
-    if (ut.stringBytes(ctlUserPW.text) < gv.intDefUserPWMinLen ||
-        ut.stringBytes(ctlUserPW.text) > gv.intDefUserPWMaxLen) {
-      setState(() {
-        gv.strRegisterError = ls.gs('UserPWErrorMinMaxLen');
-      });
-      return;
-    }
-    if (ut.stringBytes(ctlUserPW.text) != ut.stringBytes(ctlUserPWConfirm.text)) {
-      setState(() {
-        gv.strRegisterError = ls.gs('RegisterErrorConfirmPassword');
-      });
-      return;
-    }
 
-    // Check Network Connection
-    if (!gv.gbolSIOConnected) {
-      setState(() {
-        gv.strRegisterError = ls.gs('NetworkDisconnectedTryLater');
-      });
-      return;
-    }
+      // Send to server that client wants to login
+      gv.socket.emit('Register', [ctlUserID.text, ctlUserPW.text, ctlUserNick.text, ctlUserEmail.text, gv.gstrLang]);
 
-    // Reset register result
-    gv.aryRegisterResult = [];
+      // Start Login Time in ms
+      gv.timRegister = DateTime.now().millisecondsSinceEpoch;
 
-    // Show Loading
-    setState(() {
-      gv.bolLoading = true;
-    });
-
-    // Send to server that client wants to login
-    gv.socket.emit('Register', [ctlUserID.text, ctlUserPW.text, ctlUserNick.text, ctlUserEmail.text, gv.gstrLang]);
-
-    // Start Login Time in ms
-    gv.timRegister = DateTime.now().millisecondsSinceEpoch;
-
-    new Future.delayed(new Duration(milliseconds: 100), () async {
-      while (gv.bolLoading) {
-        await Thread.sleep(100);
-        // Use string to check if it is array
-        if (gv.aryRegisterResult.toString() == '[]') {
-          // this means the server didnt return any value
-          if (DateTime.now().millisecondsSinceEpoch - gv.timRegister > gv.intSocketTimeout) {
-            gv.bolLoading = false;
-            gv.strRegisterError = ls.gs('RegisterErrorTimeout');
-            if (gv.bolLoading != bolLoadingLast) {
-              bolLoadingLast = gv.bolLoading;
+      new Future.delayed(new Duration(milliseconds: 100), () async {
+        while (gv.bolLoading) {
+          await Thread.sleep(100);
+          // Use string to check if it is array
+          if (gv.aryRegisterResult.toString() == '[]') {
+            // this means the server didnt return any value
+            if (DateTime.now().millisecondsSinceEpoch - gv.timRegister > gv.intSocketTimeout) {
               setState(() {
                 gv.bolLoading = false;
               });
+              gv.strRegisterError = ls.gs('RegisterErrorTimeout');
+            } else {
+              // Not Yet Timout, so Continue Loading
             }
           } else {
-            // Not Yet Timout, so Continue Loading
-            gv.bolLoading = true;
-            if (gv.bolLoading != bolLoadingLast) {
-              bolLoadingLast = gv.bolLoading;
-              setState(() {
-                gv.bolLoading = true;
-              });
-            }
-          }
-        } else {
-          // this means that server has returned some values
-          if (gv.aryRegisterResult[0] == '0000') {
-            gv.bolLoading = false;
-            // Hide Loading
-            if (gv.bolLoading != bolLoadingLast) {
-              bolLoadingLast = gv.bolLoading;
+            // this means that server has returned some values
+            if (gv.aryRegisterResult[0] == '0000') {
+              gv.bolLoading = false;
+
+              // Show Register Success
+              ut.showToast(ls.gs('RegisterSuccess'), true);
+
+              // Goto Login
+              gv.gstrLastPage = 'Register';
+              gv.gstrCurPage = 'Login';
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => ClsLogin()),
+              );
+              Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
+            } else if (gv.aryRegisterResult[0] == '1000') {
+              gv.strRegisterError = ls.gs('RegisterErrorUserIDExist');
               setState(() {
                 gv.bolLoading = false;
               });
-            }
-            // Show Register Success
-            ut.showToast(ls.gs('RegisterSuccess'), true);
-
-            // Goto Login
-            gv.gstrLastPage = 'Register';
-            gv.gstrCurPage = 'Login';
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => ClsLogin()),
-            );
-            Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
-          } else if (gv.aryRegisterResult[0] == '1000') {
-            gv.bolLoading = false;
-            gv.strRegisterError = ls.gs('RegisterErrorUserIDExist');
-            // Hide Loading
-            if (gv.bolLoading != bolLoadingLast) {
-              bolLoadingLast = gv.bolLoading;
-              setState(() {
-                gv.bolLoading = false;
-              });
-            }
-            // Do other things
-
-          } else {
-            // Other Error, Login Failed
-            gv.bolLoading = false;
-            // Show Login Failed
-            gv.strRegisterError = ls.gs('RegisterErrorSystem');
-            if (gv.bolLoading != bolLoadingLast) {
-              bolLoadingLast = gv.bolLoading;
+            } else {
+              // Show Register Failed
+              gv.strRegisterError = ls.gs('RegisterErrorSystem');
               setState(() {
                 gv.bolLoading = false;
               });
             }
           }
         }
-      }
-    });
+      });
+    }
   }
 
   final ctlUserID = TextEditingController();

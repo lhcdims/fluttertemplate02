@@ -10,8 +10,10 @@ import 'LangStrings.dart';
 import 'tmpSettings.dart';
 
 // Import Pages
+import 'Activate.dart';
 import 'Home.dart';
 import 'Login.dart';
+import 'PersonalInformation.dart';
 import 'Register.dart';
 import 'SelectLanguage.dart';
 import 'SettingsMain.dart';
@@ -65,14 +67,36 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return StoreProvider(
-      store: gv.storeSettingsMain,
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false, // Disable Show Debug
+    // Here Return Page According to gv.gstrCurPage
+    switch (gv.gstrCurPage) {
+      case 'SettingsMain':
+        return StoreProvider(
+          store: gv.storeSettingsMain,
+          child: MaterialApp(
+            debugShowCheckedModeBanner: false, // Disable Show Debug
 
-        home: MainBody(),
-      ),
-    );
+            home: MainBody(),
+          ),
+        );
+        break;
+      case 'PersonalInformation':
+        return StoreProvider(
+          store: gv.storeSettingsMain,
+          child: MaterialApp(
+            debugShowCheckedModeBanner: false, // Disable Show Debug
+
+            home: MainBody(),
+          ),
+        );
+        break;
+      default:
+        return MaterialApp(
+            debugShowCheckedModeBanner: false, // Disable Show Debug
+
+            home: MainBody(),
+        );
+        break;
+    }
   }
 }
 
@@ -81,11 +105,22 @@ class MainBody extends StatelessWidget {
   Widget build(BuildContext context) {
     // Here Return Page According to gv.gstrCurPage
     switch (gv.gstrCurPage) {
+      case 'ActivateAccount':
+        return ClsActivateAccount();
+        break;
       case 'Home':
         return ClsHome();
         break;
       case 'Login':
         return ClsLogin();
+        break;
+      case 'PersonalInformation':
+        return StoreConnector<int, int>(
+          builder: (BuildContext context, int intTemp) {
+            return ClsPersonalInformation(intTemp);
+          }, converter: (Store<int> sintTemp) {
+          return sintTemp.state;
+        },);
         break;
       case 'Register':
         return ClsRegister();
