@@ -36,35 +36,40 @@ class ClsPersonalInformation extends StatelessWidget {
           ut.stringBytes(gv.ctlPerInfoUserNick.text) >
               gv.intDefUserNickMaxLen) {
         gv.strPerInfoError = ls.gs('UserNickErrorMinMaxLen');
-        gv.storeSettingsMain.dispatch(Actions.Increment);
+        gv.storePerInfo.dispatch(Actions.Increment);
         return;
       }
       if (!ut.isEmail(gv.ctlPerInfoUserEmail.text)) {
         gv.strPerInfoError = ls.gs('EmailAddressFormatError');
-        gv.storeSettingsMain.dispatch(Actions.Increment);
+        gv.storePerInfo.dispatch(Actions.Increment);
         return;
       }
       if (ut.stringBytes(gv.ctlPerInfoUserEmail.text) > gv.intDefEmailMaxLen) {
         gv.strPerInfoError = ls.gs('EmailAddressFormatError');
-        gv.storeSettingsMain.dispatch(Actions.Increment);
+        gv.storePerInfo.dispatch(Actions.Increment);
         return;
       }
       if (gv.ctlPerInfoUserNick.text == gv.strPerInfoUsr_NickL && gv.ctlPerInfoUserEmail.text == gv.strPerInfoUsr_EmailL) {
         // Nothing Changed
-        ut.showToast(ls.gs('NothingChanged'));
+        ut.showToast(ls.gs('NothingChanged'), true);
 
         // Goto SettingsMain
         gv.gstrLastPage = gv.gstrCurPage;
-        gv.gstrCurPage == 'SettingsMain';
+        gv.gstrCurPage = 'SettingsMain';
         Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => StoreConnector<int, int>(
-              builder: (BuildContext context, int intTemp) {
-                return ClsSettingsMain(intTemp);
-              }, converter: (Store<int> sintTemp) {
-            return sintTemp.state;
-          })),
-        );
+            context,
+            MaterialPageRoute(
+                builder: (context) => StoreProvider(
+                  store: gv.storeSettingsMain,
+                  child: StoreConnector<int, int>(
+                    builder: (BuildContext context, int intTemp) {
+                      return ClsSettingsMain(intTemp);
+                    },
+                    converter: (Store<int> sintTemp) {
+                      return sintTemp.state;
+                    },
+                  ),
+                )));
         Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
         return;
       }
@@ -72,7 +77,7 @@ class ClsPersonalInformation extends StatelessWidget {
       // Check Network Connection
       if (!gv.gbolSIOConnected) {
         gv.strPerInfoError = ls.gs('NetworkDisconnectedTryLater');
-        gv.storeSettingsMain.dispatch(Actions.Increment);
+        gv.storePerInfo.dispatch(Actions.Increment);
         return;
       }
 
@@ -81,7 +86,7 @@ class ClsPersonalInformation extends StatelessWidget {
 
       // Show Loading
       gv.bolLoading = true;
-      gv.storeSettingsMain.dispatch(Actions.Increment);
+      gv.storePerInfo.dispatch(Actions.Increment);
 
       // Check Email Changed or not
       bool bolEmailChanged = false;
@@ -113,7 +118,7 @@ class ClsPersonalInformation extends StatelessWidget {
                 gv.intSocketTimeout) {
               gv.bolLoading = false;
               gv.strPerInfoError = ls.gs('TimeoutError');
-              gv.storeSettingsMain.dispatch(Actions.Increment);
+              gv.storePerInfo.dispatch(Actions.Increment);
             } else {
               // Not Yet Timout, so Continue Loading
             }
@@ -134,21 +139,25 @@ class ClsPersonalInformation extends StatelessWidget {
               gv.gstrLastPage = gv.gstrCurPage;
               gv.gstrCurPage = 'SettingsMain';
               Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => StoreConnector<int, int>(
-                        builder: (BuildContext context, int intTemp) {
-                          return ClsSettingsMain(intTemp);
-                        }, converter: (Store<int> sintTemp) {
-                      return sintTemp.state;
-                    })),
-              );
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => StoreProvider(
+                        store: gv.storeSettingsMain,
+                        child: StoreConnector<int, int>(
+                          builder: (BuildContext context, int intTemp) {
+                            return ClsSettingsMain(intTemp);
+                          },
+                          converter: (Store<int> sintTemp) {
+                            return sintTemp.state;
+                          },
+                        ),
+                      )));
               Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
             } else {
               // Show Change Personal Information Failed
               gv.strPerInfoError = ls.gs('SystemError');
               gv.bolLoading = false;
-              gv.storeSettingsMain.dispatch(Actions.Increment);
+              gv.storePerInfo.dispatch(Actions.Increment);
             }
           }
         }
@@ -253,6 +262,7 @@ class ClsPersonalInformation extends StatelessWidget {
 
       // Set bolLoading = true
       gv.bolLoading = true;
+      gv.storePerInfo.dispatch(Actions.Increment);
 
       gv.resetVars();
 
@@ -286,7 +296,7 @@ class ClsPersonalInformation extends StatelessWidget {
         // This is CRAZY here !!!
         // Cannot dispatch storePerInfo, but storeSettingsMain
         // Otherwise the "Loading" icon does not disappear!!!
-        gv.storeSettingsMain.dispatch(Actions.Increment);
+        gv.storePerInfo.dispatch(Actions.Increment);
         print('PerInfo Dispatched');
       });
     }

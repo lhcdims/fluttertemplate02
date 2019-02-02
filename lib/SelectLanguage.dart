@@ -43,14 +43,19 @@ class _ClsSelectLanguageState extends State<ClsSelectLanguage> {
 
     // Code to Goto Next Page
     Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => StoreConnector<int, int>(
-          builder: (BuildContext context, int intTemp) {
-            return new ClsSettingsMain(intTemp);
-          }, converter: (Store<int> sintTemp) {
-        return sintTemp.state;
-      })),
-    );
+        context,
+        MaterialPageRoute(
+            builder: (context) => StoreProvider(
+              store: gv.storeSettingsMain,
+              child: StoreConnector<int, int>(
+                builder: (BuildContext context, int intTemp) {
+                  return ClsSettingsMain(intTemp);
+                },
+                converter: (Store<int> sintTemp) {
+                  return sintTemp.state;
+                },
+              ),
+            )));
     // Since no need to go back to this page,
     // Reset routes here
     Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);

@@ -1,7 +1,6 @@
 // This program stores ALL global variables required by ALL darts
 
 // Import Flutter Darts
-import 'dart:convert';
 import 'package:adhara_socket_io/adhara_socket_io.dart';
 import 'package:connectivity/connectivity.dart';
 import 'package:flutter/material.dart';
@@ -75,15 +74,17 @@ class gv {
   // Store for SettingsMain
   static Store<int> storeSettingsMain =
       new Store<int>(reducerSettingsMain, initialState: 0);
+  static Store<int> storePerInfo =
+      new Store<int>(reducerPerInfo, initialState: 0);
 
   // Declare SharedPreferences && Connectivity
   static var NetworkStatus;
   static SharedPreferences pref;
   static Init() async {
     pref = await SharedPreferences.getInstance();
-    NetworkStatus = await (Connectivity().checkConnectivity());
-    // Detect Connectivity
 
+    // Detect Connectivity
+    NetworkStatus = await (Connectivity().checkConnectivity());
     if (NetworkStatus == ConnectivityResult.mobile) {
       // I am connected to a mobile network.
       print('Mobile Network');
@@ -104,6 +105,23 @@ class gv {
     prefs.setString(strKey, strValue);
   }
 
+  // Vars For Pages
+
+  // Var For Activate
+  static var strActivateError = '';
+  static var aryActivateResult = [];
+  static var timActivate = DateTime.now().millisecondsSinceEpoch;
+
+  // Var For Change Password
+  static var strChangePWError = '';
+  static var aryChangePWResult = [];
+  static var timChangePW = DateTime.now().millisecondsSinceEpoch;
+
+  // Var For Forget Password
+  static var strForgetPWError = '';
+  static var aryForgetPWResult = [];
+  static var timForgetPW = DateTime.now().millisecondsSinceEpoch;
+
   // Var For Login
   static var strLoginID = '';
   static var strLoginPW = '';
@@ -112,16 +130,6 @@ class gv {
   static var strLoginStatus = '';
   static var bolFirstTimeCheckLogin = false;
   static var timLogin = DateTime.now().millisecondsSinceEpoch;
-
-  // Var For Register
-  static var strRegisterError = ls.gs('EmailAddressRegisterWarning');
-  static var aryRegisterResult = [];
-  static var timRegister = DateTime.now().millisecondsSinceEpoch;
-
-  // Var For Activate
-  static var strActivateError = '';
-  static var aryActivateResult = [];
-  static var timActivate = DateTime.now().millisecondsSinceEpoch;
 
   // Var For PersonalInformation
   static var strPerInfoError = ls.gs('ChangeEmailNeedActivateAgain');
@@ -133,10 +141,10 @@ class gv {
   static var ctlPerInfoUserEmail = TextEditingController();
   static bool bolPerInfoFirstCall = false;
 
-  // Var For Change Password
-  static var strChangePWError = '';
-  static var aryChangePWResult = [];
-  static var timChangePW = DateTime.now().millisecondsSinceEpoch;
+  // Var For Register
+  static var strRegisterError = ls.gs('EmailAddressRegisterWarning');
+  static var aryRegisterResult = [];
+  static var timRegister = DateTime.now().millisecondsSinceEpoch;
 
   // socket.io related
   static const String URI = 'http://thisapp.zephan.top:10531';
@@ -182,6 +190,81 @@ class gv {
       ut.showToast(ls.gs('NetworkDisconnected'));
     });
 
+    // Socket Return from socket.io server
+
+    socket.on('ActivateResult', (data) {
+      // Check if the result comes back too late
+      if (DateTime.now().millisecondsSinceEpoch - timActivate >
+          intSocketTimeout) {
+        print('Activate result timeout');
+        return;
+      }
+      aryActivateResult = data;
+    });
+
+    socket.on('ChangePasswordResult', (data) {
+      // Check if the result comes back too late
+      if (DateTime.now().millisecondsSinceEpoch - timChangePW >
+          intSocketTimeout) {
+        print('ChangePasswordResult Timeout');
+        return;
+      }
+      aryChangePWResult = data;
+    });
+
+    socket.on('ChangePerInfoResult', (data) {
+      // Check if the result comes back too late
+      if (DateTime.now().millisecondsSinceEpoch - timPerInfo >
+          intSocketTimeout) {
+        print('ChangePerInfo Result Timeout');
+        return;
+      }
+      aryPerInfoResult = data;
+    });
+
+    socket.on('ForceLogoutByServer', (data) {
+      // Force Logout By Server (Duplicate Login)
+
+      // Clear User ID
+      strLoginID = '';
+      strLoginPW = '';
+      strLoginStatus = '';
+      setString('strLoginID', strLoginID);
+      setString('strLoginPW', strLoginPW);
+
+      // Show Long Toast
+      ut.showToast(ls.gs('LoginErrorReLogin'), true);
+
+      // Reset States
+      resetStates();
+    });
+
+    socket.on('ForgetPasswordResult', (data) {
+      // Check if the result comes back too late
+      if (DateTime.now().millisecondsSinceEpoch - timForgetPW >
+          intSocketTimeout) {
+        print('ForgetPasswordResult Timeout');
+        return;
+      }
+      aryForgetPWResult = data;
+    });
+
+    socket.on('GetPerInfoResult', (data) {
+      // Check if the result comes back too late
+      if (DateTime.now().millisecondsSinceEpoch - timPerInfo >
+          intSocketTimeout) {
+        print('GetPerInfo Result Timeout');
+        return;
+      }
+      aryPerInfoResult = data;
+
+      strPerInfoUsr_NickL = gv.aryPerInfoResult[1][0]['usr_nick'];
+      strPerInfoUsr_EmailL = gv.aryPerInfoResult[1][0]['usr_email'];
+
+      bolLoading = false;
+      ctlPerInfoUserNick.text = gv.strPerInfoUsr_NickL;
+      ctlPerInfoUserEmail.text = gv.strPerInfoUsr_EmailL;
+    });
 
     socket.on('LoginResult', (data) {
       // Check if the result comes back too late
@@ -224,25 +307,6 @@ class gv {
       }
     });
 
-
-    socket.on('ForceLogoutByServer', (data) {
-      // Force Logout By Server (Duplicate Login)
-
-      // Clear User ID
-      strLoginID = '';
-      strLoginPW = '';
-      strLoginStatus = '';
-      setString('strLoginID', strLoginID);
-      setString('strLoginPW', strLoginPW);
-
-      // Show Long Toast
-      ut.showToast(ls.gs('LoginErrorReLogin'), true);
-
-      // Reset States
-      resetStates();
-    });
-
-
     socket.on('RegisterResult', (data) {
       // Check if the result comes back too late
       if (DateTime.now().millisecondsSinceEpoch - timRegister >
@@ -252,18 +316,6 @@ class gv {
       }
       aryRegisterResult = data;
     });
-
-
-    socket.on('ActivateResult', (data) {
-      // Check if the result comes back too late
-      if (DateTime.now().millisecondsSinceEpoch - timActivate >
-          intSocketTimeout) {
-        print('Activate result timeout');
-        return;
-      }
-      aryActivateResult = data;
-    });
-
 
     socket.on('SendEmailAgainResult', (data) {
       // Check if the result comes back too late
@@ -275,49 +327,7 @@ class gv {
       aryActivateResult = data;
     });
 
-
-    socket.on('GetPerInfoResult', (data) {
-      // Check if the result comes back too late
-      if (DateTime.now().millisecondsSinceEpoch - timPerInfo >
-          intSocketTimeout) {
-        print('GetPerInfo Result Timeout');
-        return;
-      }
-      aryPerInfoResult = data;
-
-      strPerInfoUsr_NickL = gv.aryPerInfoResult[1][0]['usr_nick'];
-      strPerInfoUsr_EmailL = gv.aryPerInfoResult[1][0]['usr_email'];
-
-      bolLoading = false;
-      ctlPerInfoUserNick.text = gv.strPerInfoUsr_NickL;
-      ctlPerInfoUserEmail.text = gv.strPerInfoUsr_EmailL;
-    });
-
-
-    socket.on('ChangePerInfoResult', (data) {
-      // Check if the result comes back too late
-      if (DateTime.now().millisecondsSinceEpoch - timPerInfo >
-          intSocketTimeout) {
-        print('ChangePerInfo Result Timeout');
-        return;
-      }
-      aryPerInfoResult = data;
-    });
-
-
-    socket.on('ChangePasswordResult', (data) {
-      // Check if the result comes back too late
-      if (DateTime.now().millisecondsSinceEpoch - timChangePW >
-          intSocketTimeout) {
-        print('ChangePassword Result Timeout');
-        return;
-      }
-      aryChangePWResult = data;
-      print('Change Password Result: ' + jsonEncode(data));
-    });
-
-
-
+    // Connect Socket
     socket.connect();
 
     // Create a thread to send HeartBeat
@@ -349,6 +359,12 @@ class gv {
 
     // Reset Vars for Per Info
     strPerInfoError = ls.gs('ChangeEmailNeedActivateAgain');
+
+    // Reset Vars for Change Password
+    strChangePWError = '';
+
+    // Reset Vars for Forget Password
+    strForgetPWError = '';
   }
 
   // Reset All states

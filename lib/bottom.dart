@@ -13,7 +13,6 @@ import 'LangStrings.dart';
 import 'Home.dart';
 import 'SettingsMain.dart';
 
-
 // Class Bottom
 class ClsBottom extends StatefulWidget {
   @override
@@ -50,14 +49,19 @@ class _ClsBottomState extends State<ClsBottom> {
 
           // Goto SettingsMain
           Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => StoreConnector<int, int>(
-                builder: (BuildContext context, int intTemp) {
-                  return ClsSettingsMain(intTemp);
-                }, converter: (Store<int> sintTemp) {
-              return sintTemp.state;
-            })),
-          );
+              context,
+              MaterialPageRoute(
+                  builder: (context) => StoreProvider(
+                        store: gv.storeSettingsMain,
+                        child: StoreConnector<int, int>(
+                          builder: (BuildContext context, int intTemp) {
+                            return ClsSettingsMain(intTemp);
+                          },
+                          converter: (Store<int> sintTemp) {
+                            return sintTemp.state;
+                          },
+                        ),
+                      )));
           Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
           break;
         default:

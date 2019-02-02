@@ -14,6 +14,7 @@ import 'Utilities.dart';
 
 // Import Pages
 import 'bottom.dart';
+import 'ForgetPassword.dart';
 import 'Login.dart';
 
 // Register Page
@@ -42,7 +43,18 @@ class _ClsRegisterState extends State<ClsRegister> {
     Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
   }
 
-  void funLoginForgetPW() {}
+  void funLoginForgetPW() {
+    // From Login to ForgetPW
+    gv.gstrLastPage = gv.gstrCurPage;
+    gv.gstrCurPage = 'ForgetPassword';
+
+    // Goto Register
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => ClsForgetPassword()),
+    );
+    Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
+  }
 
 
   void funRegisterPressed() {

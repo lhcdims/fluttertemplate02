@@ -12,6 +12,7 @@ import 'tmpSettings.dart';
 // Import Pages
 import 'Activate.dart';
 import 'ChangePassword.dart';
+import 'ForgetPassword.dart';
 import 'Home.dart';
 import 'Login.dart';
 import 'PersonalInformation.dart';
@@ -68,36 +69,11 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    // Here Return Page According to gv.gstrCurPage
-    switch (gv.gstrCurPage) {
-      case 'SettingsMain':
-        return StoreProvider(
-          store: gv.storeSettingsMain,
-          child: MaterialApp(
-            debugShowCheckedModeBanner: false, // Disable Show Debug
+    return MaterialApp(
+      debugShowCheckedModeBanner: false, // Disable Show Debug
 
-            home: MainBody(),
-          ),
-        );
-        break;
-      case 'PersonalInformation':
-        return StoreProvider(
-          store: gv.storeSettingsMain,
-          child: MaterialApp(
-            debugShowCheckedModeBanner: false, // Disable Show Debug
-
-            home: MainBody(),
-          ),
-        );
-        break;
-      default:
-        return MaterialApp(
-            debugShowCheckedModeBanner: false, // Disable Show Debug
-
-            home: MainBody(),
-        );
-        break;
-    }
+      home: MainBody(),
+    );
   }
 }
 
@@ -112,6 +88,9 @@ class MainBody extends StatelessWidget {
       case 'ChangePassword':
         return ClsChangePassword();
         break;
+      case 'ForgetPassword':
+        return ClsForgetPassword();
+        break;
       case 'Home':
         return ClsHome();
         break;
@@ -119,12 +98,16 @@ class MainBody extends StatelessWidget {
         return ClsLogin();
         break;
       case 'PersonalInformation':
-        return StoreConnector<int, int>(
-          builder: (BuildContext context, int intTemp) {
-            return ClsPersonalInformation(intTemp);
-          }, converter: (Store<int> sintTemp) {
-          return sintTemp.state;
-        },);
+        return
+          StoreProvider(
+            store: gv.storePerInfo,
+            child:StoreConnector<int, int>(
+              builder: (BuildContext context, int intTemp) {
+                return ClsPersonalInformation(intTemp);
+              }, converter: (Store<int> sintTemp) {
+              return sintTemp.state;
+            },),
+          );
         break;
       case 'Register':
         return ClsRegister();
@@ -133,20 +116,28 @@ class MainBody extends StatelessWidget {
         return ClsSelectLanguage();
         break;
       case 'SettingsMain':
-        return StoreConnector<int, int>(
-          builder: (BuildContext context, int intTemp) {
-            return ClsSettingsMain(intTemp);
-          }, converter: (Store<int> sintTemp) {
-          return sintTemp.state;
-        },);
+        return
+          StoreProvider(
+            store: gv.storeSettingsMain,
+            child:StoreConnector<int, int>(
+              builder: (BuildContext context, int intTemp) {
+                return ClsSettingsMain(intTemp);
+              }, converter: (Store<int> sintTemp) {
+              return sintTemp.state;
+            },),
+          );
         break;
       case 'Logout':
-        return StoreConnector<int, int>(
-          builder: (BuildContext context, int intTemp) {
-            return ClsSettingsMain(intTemp);
-          }, converter: (Store<int> sintTemp) {
-          return sintTemp.state;
-        },);
+        return
+          StoreProvider(
+            store: gv.storeSettingsMain,
+            child:StoreConnector<int, int>(
+              builder: (BuildContext context, int intTemp) {
+                return ClsSettingsMain(intTemp);
+              }, converter: (Store<int> sintTemp) {
+              return sintTemp.state;
+            },),
+          );
         break;
     }
     return ClsHome();

@@ -17,6 +17,7 @@ import 'Utilities.dart';
 // Import Pages
 import 'Activate.dart';
 import 'bottom.dart';
+import 'ForgetPassword.dart';
 import 'Register.dart';
 import 'SettingsMain.dart';
 
@@ -48,7 +49,18 @@ class _ClsLoginState extends State<ClsLogin> {
 
 
 
-  void funLoginForgetPW() {}
+  void funLoginForgetPW() {
+    // From Login to ForgetPW
+    gv.gstrLastPage = gv.gstrCurPage;
+    gv.gstrCurPage = 'ForgetPassword';
+
+    // Goto Register
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => ClsForgetPassword()),
+    );
+    Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
+  }
 
 
 
@@ -142,15 +154,19 @@ class _ClsLoginState extends State<ClsLogin> {
                 // Goto Settings Main
                 gv.gstrCurPage = 'SettingsMain';
                 Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => StoreConnector<int, int>(
-                          builder: (BuildContext context, int intTemp) {
-                            return ClsSettingsMain(intTemp);
-                          }, converter: (Store<int> sintTemp) {
-                        return sintTemp.state;
-                      })),
-                );
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => StoreProvider(
+                          store: gv.storeSettingsMain,
+                          child: StoreConnector<int, int>(
+                            builder: (BuildContext context, int intTemp) {
+                              return ClsSettingsMain(intTemp);
+                            },
+                            converter: (Store<int> sintTemp) {
+                              return sintTemp.state;
+                            },
+                          ),
+                        )));
               }
               // Reset Routes
               Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);

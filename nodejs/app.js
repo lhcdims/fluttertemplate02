@@ -225,11 +225,15 @@ socketAll.on('connection', function (socket) {
     });
 
     socket.on('ChangePerInfo', function (strUsrID, strUsrNick, strUsrEmail, bolEmailChanged, strLang) {
-        funChangePerInfo(strUsrID, strUsrNick, strUsrEmail, bolEmailChanged, socket.id, strLang)
+        funChangePerInfo(strUsrID, strUsrNick, strUsrEmail, bolEmailChanged, socket.id, strLang);
     });
 
     socket.on('ChangePassword', function (strUsrID, strUsrPWOld, strUsrPW) {
-        funChangePassword(strUsrID, strUsrPWOld, strUsrPW, socket.id)
+        funChangePassword(strUsrID, strUsrPWOld, strUsrPW, socket.id);
+    });
+
+    socket.on('ForgetPassword', function (strUsrEmail, strLang) {
+        funForgetPassword(strUsrEmail, socket.id, strLang);
     });
 
     // Catch any unexpected error, to avoid system hangs
@@ -657,6 +661,94 @@ function funChangePassword(strUsrID, strUsrPWOld, strUsrPW, socketID) {
         socketAll.to(`${socketID}`).emit('ChangePasswordResult', ['9999', '9999']);
     }
 }
+// Forget Password
+function funForgetPassword(strUsrEmail, socketID, strLang) {
+    try {
+        let sql = 'SELECT usr_id, usr_pw FROM userid WHERE usr_email = ?';
+        pool.getConnection(function (err, connection) {
+            connection.query(sql, [strUsrEmail], function (err, result) {
+                if (err) {
+                    pool.releaseConnection(connection);
+                    // throw err;
+                } else {
+                    // Save result value
+                    let aryResult = ['0000', result];
+                    pool.releaseConnection(connection);
+                    if (result.length === 0) {
+                        aryResult[0] = '1000';
+                        socketAll.to(`${socketID}`).emit('ForgetPasswordResult', aryResult);
+                    } else {
+                        // Found User ID and Password
+                        funForgetPWSendEmail(strUsrEmail, result, strLang);
+                        socketAll.to(`${socketID}`).emit('ForgetPasswordResult', aryResult);
+                    }
+                }
+            });
+        });
+    } catch (Err) {
+        socketAll.to(`${socketID}`).emit('ForgetPasswordResult', ['9999', '9999']);
+    }
+}
+function funForgetPWSendEmail(strUsrEmail, result, strLang) {
+    try {
+        let strSubject = '';
+        let strText = '';
+        let strHTML = '';
+        let strTemp1 = '';
+        let strTemp2 = '';
+        switch (strLang) {
+            case 'EN':
+                strSubject = 'Forget Password';
+                strHTML = 'Your List of User ID and Password:'+ '<br><br>';
+                strText = 'Your List of User ID and Password:'+  '\n\n';
+                strTemp1 = 'User ID:  ';
+                strTemp2 = 'Password: ';
+                break;
+            case 'SC':
+                strSubject = '忘记密码';
+                strHTML = '账号密码列表：'+ '<br><br>';
+                strText = '账号密码列表：'+  '\n\n';
+                strTemp1 = '账号：';
+                strTemp2 = '密码：';
+                break;
+            default:
+                strSubject = '忘記密碼';
+                strHTML = '賬號密碼列表：'+ '<br><br>';
+                strText = '賬號密碼列表：'+  '\n\n';
+                strTemp1 = '賬號：';
+                strTemp2 = '密碼：';
+                break;
+        }
+
+        // Loop for result
+        for (let i=0; i<result.length; i++) {
+            strHTML += strTemp1 + result[i]['usr_id'] + '<br>';
+            strHTML += strTemp2 + result[i]['usr_pw'] + '<br><br>';
+            strText += strTemp1 + result[i]['usr_id'] + '\n';
+            strText += strTemp2 + result[i]['usr_pw'] + '\n\n';
+        }
+
+        let mailOptions = {
+            from: 'info@zephan.top',
+            to: strUsrEmail,
+            subject: strSubject,
+            text: strText,
+            html: strHTML
+        };
+        transporter.sendMail(mailOptions, function(error, info){
+            if (error) {
+                // console.log(error);
+            } else {
+                // console.log('Email sent: ' + info.response);
+            }
+        });
+    } catch (err) {
+        // Send Email System Error
+    }
+}
+
+
+
 
 
 

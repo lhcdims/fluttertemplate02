@@ -155,15 +155,19 @@ class _ClsActivateAccountState extends State<ClsActivateAccount> {
               // Goto SettingsMain
               gv.gstrCurPage = 'SettingsMain';
               Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => StoreConnector<int, int>(
-                        builder: (BuildContext context, int intTemp) {
-                          return ClsSettingsMain(intTemp);
-                        }, converter: (Store<int> sintTemp) {
-                      return sintTemp.state;
-                    })),
-              );
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => StoreProvider(
+                        store: gv.storeSettingsMain,
+                        child: StoreConnector<int, int>(
+                          builder: (BuildContext context, int intTemp) {
+                            return ClsSettingsMain(intTemp);
+                          },
+                          converter: (Store<int> sintTemp) {
+                            return sintTemp.state;
+                          },
+                        ),
+                      )));
               Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
             } else if (gv.aryActivateResult[0] == '0100') {
               // Show Already Activate

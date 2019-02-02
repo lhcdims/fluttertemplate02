@@ -68,14 +68,19 @@ class ClsSettingsMain extends StatelessWidget {
 
           gv.bolPerInfoFirstCall = true;
           Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => StoreConnector<int, int>(
-                builder: (BuildContext context, int intTemp) {
-                  return ClsPersonalInformation(intTemp);
-                }, converter: (Store<int> sintTemp) {
-              return sintTemp.state;
-            })),
-          );
+              context,
+              MaterialPageRoute(
+                  builder: (context) => StoreProvider(
+                    store: gv.storePerInfo,
+                    child: StoreConnector<int, int>(
+                      builder: (BuildContext context, int intTemp) {
+                        return ClsPersonalInformation(intTemp);
+                      },
+                      converter: (Store<int> sintTemp) {
+                        return sintTemp.state;
+                      },
+                    ),
+                  )));
         };
         break;
       case 'SelectLanguage':
