@@ -284,7 +284,7 @@ class ClsPersonalInformation extends StatelessWidget {
             if (DateTime.now().millisecondsSinceEpoch - gv.timPerInfo >
                 gv.intSocketTimeout) {
               gv.bolLoading = false;
-              ut.showToast(ls.gs('TimeoutError'));
+              ut.showToast(ls.gs('TimeoutError'), true);
             } else {
               // Not Yet Timout, so Continue Loading
             }

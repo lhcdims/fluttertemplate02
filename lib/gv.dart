@@ -17,13 +17,7 @@ import 'Utilities.dart';
 enum Actions {
   Increment
 } // The reducer, which takes the previous count and increments it in response to an Increment action.
-int reducerSettingsMain(int intSomeInteger, dynamic action) {
-  if (action == Actions.Increment) {
-    return intSomeInteger + 1;
-  }
-  return intSomeInteger;
-}
-int reducerPerInfo(int intSomeInteger, dynamic action) {
+int reducerRedux(int intSomeInteger, dynamic action) {
   if (action == Actions.Increment) {
     return intSomeInteger + 1;
   }
@@ -73,9 +67,9 @@ class gv {
 
   // Store for SettingsMain
   static Store<int> storeSettingsMain =
-      new Store<int>(reducerSettingsMain, initialState: 0);
+      new Store<int>(reducerRedux, initialState: 0);
   static Store<int> storePerInfo =
-      new Store<int>(reducerPerInfo, initialState: 0);
+      new Store<int>(reducerRedux, initialState: 0);
 
   // Declare SharedPreferences && Connectivity
   static var NetworkStatus;
