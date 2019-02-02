@@ -1,4 +1,4 @@
-// This program display the Login Page
+// This program display the Forget Password Page
 
 // Import Flutter Darts
 import 'dart:async';
@@ -9,58 +9,42 @@ import 'package:redux/redux.dart';
 import 'package:threading/threading.dart';
 
 // Import Self Darts
-import 'gv.dart';
+import 'GlobalVariables.dart';
 import 'LangStrings.dart';
-import 'tmpSettings.dart';
+import 'ScreenVariables.dart';
 import 'Utilities.dart';
 
 // Import Pages
-import 'bottom.dart';
-import 'SettingsMain.dart';
+import 'BottomBar.dart';
+import 'PageSettingsMain.dart';
 
-// Login Page
-class ClsChangePassword extends StatefulWidget {
+// Register Page
+class ClsForgetPassword extends StatefulWidget {
   @override
-  _ClsChangePasswordState createState() => _ClsChangePasswordState();
+  _ClsForgetPasswordState createState() => _ClsForgetPasswordState();
 }
 
-class _ClsChangePasswordState extends State<ClsChangePassword> {
+class _ClsForgetPasswordState extends State<ClsForgetPassword> {
   @override
   initState() {
     super.initState();
     // Add listeners to this class, if any
   }
 
-  void funChangePressed() {
+  void funSendPressed() {
     if (!gv.bolLoading) {
       gv.resetVars();
 
       // Validate Input
-      if (ut.stringBytes(ctlUserPWOld.text) < gv.intDefUserPWMinLen ||
-          ut.stringBytes(ctlUserPWOld.text) > gv.intDefUserPWMaxLen) {
+      if (!ut.isEmail(ctlUserEmail.text)) {
         setState(() {
-          gv.strChangePWError = ls.gs('UserPWErrorMinMaxLen');
+          gv.strForgetPWError = ls.gs('EmailAddressFormatError');
         });
         return;
       }
-      if (ut.stringBytes(ctlUserPW.text) < gv.intDefUserPWMinLen ||
-          ut.stringBytes(ctlUserPW.text) > gv.intDefUserPWMaxLen) {
+      if (ut.stringBytes(ctlUserEmail.text) > gv.intDefEmailMaxLen) {
         setState(() {
-          gv.strChangePWError = ls.gs('UserPWErrorMinMaxLen');
-        });
-        return;
-      }
-      if (ut.stringBytes(ctlUserPW.text) ==
-          ut.stringBytes(ctlUserPWOld.text)) {
-        setState(() {
-          gv.strChangePWError = ls.gs('OldPasswordCannotBeTheSameAsNewPassword');
-        });
-        return;
-      }
-      if (ut.stringBytes(ctlUserPW.text) !=
-          ut.stringBytes(ctlUserPWConfirm.text)) {
-        setState(() {
-          gv.strChangePWError = ls.gs('RegisterErrorConfirmPassword');
+          gv.strForgetPWError = ls.gs('EmailAddressFormatError');
         });
         return;
       }
@@ -68,55 +52,49 @@ class _ClsChangePasswordState extends State<ClsChangePassword> {
       // Check Network Connection
       if (!gv.gbolSIOConnected) {
         setState(() {
-          gv.strChangePWError = ls.gs('NetworkDisconnectedTryLater');
+          gv.strForgetPWError = ls.gs('NetworkDisconnectedTryLater');
         });
         return;
       }
 
-      // Reset login result
-      gv.aryChangePWResult = [];
+      // Reset register result
+      gv.aryForgetPWResult = [];
 
       // Show Loading
       setState(() {
         gv.bolLoading = true;
       });
 
-      // Send to server that client wants to change password
-      gv.socket.emit('ChangePassword', [gv.strLoginID, ctlUserPWOld.text, ctlUserPW.text]);
+      // Send to server that client wants to login
+      gv.socket.emit('ForgetPassword', [ctlUserEmail.text, gv.gstrLang]);
 
-      // Start ChangePW Time in ms
-      gv.timChangePW = DateTime.now().millisecondsSinceEpoch;
+      // Start Login Time in ms
+      gv.timForgetPW = DateTime.now().millisecondsSinceEpoch;
 
       new Future.delayed(new Duration(milliseconds: 100), () async {
         while (gv.bolLoading) {
           await Thread.sleep(100);
           // Use string to check if it is array
-          if (gv.aryChangePWResult.toString() == '[]') {
-            // this means the server not yet return any value
-            if (DateTime.now().millisecondsSinceEpoch - gv.timChangePW >
-                gv.intSocketTimeout) {
-              gv.strChangePWError = ls.gs('TimeoutError');
+          if (gv.aryForgetPWResult.toString() == '[]') {
+            // this means the server didnt return any value
+            if (DateTime.now().millisecondsSinceEpoch - gv.timForgetPW > gv.intSocketTimeout) {
               setState(() {
                 gv.bolLoading = false;
               });
+              gv.strForgetPWError = ls.gs('TimeoutError');
             } else {
-              // Not Yet Timeout, so Continue Loading
+              // Not Yet Timout, so Continue Loading
             }
           } else {
             // this means that server has returned some values
-            if (gv.aryChangePWResult[0] == '0000') {
+            if (gv.aryForgetPWResult[0] == '0000') {
               gv.bolLoading = false;
 
-              // Save Login ID & PW in Memory
-              gv.strLoginPW = ctlUserPW.text;
-
-              // Save Login ID & PW in SharedPreferences
-              gv.setString('strLoginPW', gv.strLoginPW);
-
-              // Show Password Changed
-              ut.showToast(ls.gs('PasswordChanged'), true);
+              // Show Forget Password Email Sent
+              ut.showToast(ls.gs('PlsCheckEmailForIDAndPasword'), true);
 
               // Goto Settings Main
+              gv.gstrLastPage = gv.gstrCurPage;
               gv.gstrCurPage = 'SettingsMain';
               Navigator.push(
                   context,
@@ -132,16 +110,15 @@ class _ClsChangePasswordState extends State<ClsChangePassword> {
                           },
                         ),
                       )));
-              // Reset Routes
               Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
-            } else if (gv.aryChangePWResult[0] == '1000') {
-              gv.strChangePWError = ls.gs('OldPasswordIsNotCorrect');
+            } else if (gv.aryForgetPWResult[0] == '1000') {
+              gv.strForgetPWError = ls.gs('EmailNotFound');
               setState(() {
                 gv.bolLoading = false;
               });
             } else {
-              // Other Error
-              gv.strChangePWError = ls.gs('SystemError');
+              // Forget Password System Error
+              gv.strForgetPWError = ls.gs('SystemError');
               setState(() {
                 gv.bolLoading = false;
               });
@@ -152,9 +129,7 @@ class _ClsChangePasswordState extends State<ClsChangePassword> {
     }
   }
 
-  final ctlUserPWOld = TextEditingController();
-  final ctlUserPW = TextEditingController();
-  final ctlUserPWConfirm = TextEditingController();
+  final ctlUserEmail = TextEditingController();
 
   Widget Body() {
     return Center(
@@ -169,7 +144,7 @@ class _ClsChangePasswordState extends State<ClsChangePassword> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
                 Text(' '),
-                Text(gv.strChangePWError, style: TextStyle(color: Colors.red)),
+                Text(gv.strForgetPWError, style: TextStyle(color: Colors.red)),
                 Text(' '),
                 Text(' '),
                 Row(
@@ -177,55 +152,11 @@ class _ClsChangePasswordState extends State<ClsChangePassword> {
                     Text(ut.Space(sv.gintSpaceTextField)),
                     Expanded(
                       child: TextField(
-                        controller: ctlUserPWOld,
+                        controller: ctlUserEmail,
+                        keyboardType: TextInputType.text,
                         autofocus: false,
-                        obscureText: true,
                         decoration: InputDecoration(
-                          hintText: ls.gs('PasswordOld'),
-                          contentPadding:
-                              EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
-                          border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(32.0)),
-                        ),
-                      ),
-                    ),
-                    Text(ut.Space(sv.gintSpaceTextField)),
-                  ],
-                ),
-                Text(' '),
-                Text(' '),
-                Row(
-                  children: <Widget>[
-                    Text(ut.Space(sv.gintSpaceTextField)),
-                    Expanded(
-                      child: TextField(
-                        controller: ctlUserPW,
-                        autofocus: false,
-                        obscureText: true,
-                        decoration: InputDecoration(
-                          hintText: ls.gs('PasswordNew'),
-                          contentPadding:
-                          EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
-                          border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(32.0)),
-                        ),
-                      ),
-                    ),
-                    Text(ut.Space(sv.gintSpaceTextField)),
-                  ],
-                ),
-                Text(' '),
-                Text(' '),
-                Row(
-                  children: <Widget>[
-                    Text(ut.Space(sv.gintSpaceTextField)),
-                    Expanded(
-                      child: TextField(
-                        controller: ctlUserPWConfirm,
-                        autofocus: false,
-                        obscureText: true,
-                        decoration: InputDecoration(
-                          hintText: ls.gs('UserPWConfirm'),
+                          hintText: ls.gs('EmailAddress'),
                           contentPadding:
                           EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
                           border: OutlineInputBorder(
@@ -250,8 +181,8 @@ class _ClsChangePasswordState extends State<ClsChangePassword> {
                                   sv.dblDefaultRoundRadius)),
                           textColor: Colors.white,
                           color: Colors.greenAccent,
-                          onPressed: () => funChangePressed(),
-                          child: Text(ls.gs('Change'),
+                          onPressed: () => funSendPressed(),
+                          child: Text(ls.gs('Send'),
                               style: TextStyle(
                                   fontSize: sv.dblDefaultFontSize * 1)),
                         ),
@@ -274,7 +205,7 @@ class _ClsChangePasswordState extends State<ClsChangePassword> {
       appBar: PreferredSize(
         child: AppBar(
           title: Text(
-            ls.gs('ChangePassword'),
+            ls.gs('ForgetPassword'),
             style: TextStyle(fontSize: sv.dblDefaultFontSize),
           ),
         ),

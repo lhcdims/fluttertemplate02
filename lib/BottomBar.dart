@@ -6,12 +6,12 @@ import 'package:redux/redux.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 
 // Import Self Darts
-import 'gv.dart';
+import 'GlobalVariables.dart';
 import 'LangStrings.dart';
 
 // Import Pages
-import 'Home.dart';
-import 'SettingsMain.dart';
+import 'PageHome.dart';
+import 'PageSettingsMain.dart';
 
 // Class Bottom
 class ClsBottom extends StatefulWidget {

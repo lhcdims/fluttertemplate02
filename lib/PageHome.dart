@@ -5,10 +5,10 @@ import 'package:flutter/material.dart';
 
 // Import Self Darts
 import 'LangStrings.dart';
-import 'tmpSettings.dart';
+import 'ScreenVariables.dart';
 
 // Import Pages
-import 'bottom.dart';
+import 'BottomBar.dart';
 
 // Home Page
 class ClsHome extends StatefulWidget {

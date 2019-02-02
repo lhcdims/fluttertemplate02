@@ -140,6 +140,9 @@ class gv {
   static var aryRegisterResult = [];
   static var timRegister = DateTime.now().millisecondsSinceEpoch;
 
+  // Var For ShowDialog
+  static int intShowDialogIndex = 0;
+
   // socket.io related
   static const String URI = 'http://thisapp.zephan.top:10531';
   static bool gbolSIOConnected = false;

@@ -5,20 +5,20 @@ import 'package:flutter_redux/flutter_redux.dart';
 import 'package:redux/redux.dart';
 
 // Import Self Darts
-import 'gv.dart';
+import 'GlobalVariables.dart';
 import 'LangStrings.dart';
-import 'tmpSettings.dart';
+import 'ScreenVariables.dart';
 
 // Import Pages
-import 'Activate.dart';
-import 'ChangePassword.dart';
-import 'ForgetPassword.dart';
-import 'Home.dart';
-import 'Login.dart';
-import 'PersonalInformation.dart';
-import 'Register.dart';
-import 'SelectLanguage.dart';
-import 'SettingsMain.dart';
+import 'PageActivate.dart';
+import 'PageChangePassword.dart';
+import 'PageForgetPassword.dart';
+import 'PageHome.dart';
+import 'PageLogin.dart';
+import 'PagePersonalInformation.dart';
+import 'PageRegister.dart';
+import 'PageSelectLanguage.dart';
+import 'PageSettingsMain.dart';
 
 // Main Program
 void main() {
@@ -116,18 +116,6 @@ class MainBody extends StatelessWidget {
         return ClsSelectLanguage();
         break;
       case 'SettingsMain':
-        return
-          StoreProvider(
-            store: gv.storeSettingsMain,
-            child:StoreConnector<int, int>(
-              builder: (BuildContext context, int intTemp) {
-                return ClsSettingsMain(intTemp);
-              }, converter: (Store<int> sintTemp) {
-              return sintTemp.state;
-            },),
-          );
-        break;
-      case 'Logout':
         return
           StoreProvider(
             store: gv.storeSettingsMain,

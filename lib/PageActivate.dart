@@ -9,14 +9,14 @@ import 'package:redux/redux.dart';
 import 'package:threading/threading.dart';
 
 // Import Self Darts
-import 'gv.dart';
+import 'GlobalVariables.dart';
 import 'LangStrings.dart';
-import 'tmpSettings.dart';
+import 'ScreenVariables.dart';
 import 'Utilities.dart';
 
 // Import Pages
-import 'bottom.dart';
-import 'SettingsMain.dart';
+import 'BottomBar.dart';
+import 'PageSettingsMain.dart';
 
 // Login Page
 class ClsActivateAccount extends StatefulWidget {

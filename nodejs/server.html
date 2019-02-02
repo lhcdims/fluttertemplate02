@@ -1,0 +1,27 @@
+﻿<!doctype html>
+<html>
+<head>
+    <title>ken068802 Socket.IO Server</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://code.jquery.com/jquery-3.2.1.js"></script>
+    <script>
+        var gintMaxLine = 100;
+        var gintCurLine = 0;
+        $(function () {
+            var socket = io();
+            socket.on('chat message', function (msg) {
+                gintCurLine += 1;
+                if (gintCurLine > gintMaxLine) {
+                    gintCurLine = 1;
+                    divMain.innerHTML = "";
+                }
+                divMain.innerHTML = msg + "<br>" + divMain.innerHTML;
+            });
+        });
+    </script>
+</head>
+
+<body>
+    <div id="divMain"></div>
+</body>
+</html>

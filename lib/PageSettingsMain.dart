@@ -6,18 +6,19 @@ import 'package:redux/redux.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 
 // Import Self Darts
-import 'gv.dart';
+import 'GlobalVariables.dart';
 import 'LangStrings.dart';
-import 'tmpSettings.dart';
+import 'ScreenVariables.dart';
+import 'ShowDialog.dart';
 import 'Utilities.dart';
 
 // Import Pages
-import 'Activate.dart';
-import 'ChangePassword.dart';
-import 'bottom.dart';
-import 'Login.dart';
-import 'PersonalInformation.dart';
-import 'SelectLanguage.dart';
+import 'PageActivate.dart';
+import 'PageChangePassword.dart';
+import 'BottomBar.dart';
+import 'PageLogin.dart';
+import 'PagePersonalInformation.dart';
+import 'PageSelectLanguage.dart';
 
 
 // Home Page
@@ -34,87 +35,76 @@ class ClsSettingsMain extends StatelessWidget {
   ];
 
   // Choose which page when button pressed
-  void funSettingsMain (strProg, context) {
-    // Set LastPage
-    gv.gstrLastPage = gv.gstrCurPage;
+  void funSettingsMain(strProg, context) {
+    if (strProg != 'Logout') {
+      // Set LastPage
+      gv.gstrLastPage = gv.gstrCurPage;
 
-    // Go to Next Page
-    gv.gstrCurPage = strProg;
+      // Go to Next Page
+      gv.gstrCurPage = strProg;
 
-    // Code to Goto Next Page
-    switch (strProg) {
-      case 'ActivateAccount':
-        gv.resetVars();
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => ClsActivateAccount()),
-        );
-        break;
-      case 'ChangePassword':
-        gv.resetVars();
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => ClsChangePassword()),
-        );
-        break;
-      case 'PersonalInformation':
-        if (!gv.bolLoading) {
-
-          // Check Network Connection
-          if (!gv.gbolSIOConnected) {
-            ut.showToast(ls.gs('NetworkDisconnectedTryLater'), true);
-            return;
-          }
-
-          gv.bolPerInfoFirstCall = true;
+      // Code to Goto Next Page
+      switch (strProg) {
+        case 'ActivateAccount':
+          gv.resetVars();
           Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => StoreProvider(
-                    store: gv.storePerInfo,
-                    child: StoreConnector<int, int>(
-                      builder: (BuildContext context, int intTemp) {
-                        return ClsPersonalInformation(intTemp);
-                      },
-                      converter: (Store<int> sintTemp) {
-                        return sintTemp.state;
-                      },
-                    ),
-                  )));
-        };
-        break;
-      case 'SelectLanguage':
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => ClsSelectLanguage()),
-        );
-        break;
-      case 'Login':
-        gv.resetVars();
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => ClsLogin()),
-        );
-        break;
-      case 'Logout':
-        // Do Logout
-        gv.strLoginID = '';
-        gv.strLoginPW = '';
-        gv.strLoginStatus = '';
-        gv.setString('strLoginID', gv.strLoginID);
-        gv.setString('strLoginPW', gv.strLoginPW);
+            context,
+            MaterialPageRoute(builder: (context) => ClsActivateAccount()),
+          );
+          break;
+        case 'ChangePassword':
+          gv.resetVars();
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => ClsChangePassword()),
+          );
+          break;
+        case 'PersonalInformation':
+          if (!gv.bolLoading) {
 
-        // Increment storeSettingsMain to refresh page
-        gv.storeSettingsMain.dispatch(Actions.Increment);
+            // Check Network Connection
+            if (!gv.gbolSIOConnected) {
+              ut.showToast(ls.gs('NetworkDisconnectedTryLater'), true);
+              return;
+            }
 
-        // Call Server to Logout
-        gv.socket.emit('LogoutFromServer', []);
-
-        break;
-      default:
-        break;
+            gv.bolPerInfoFirstCall = true;
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => StoreProvider(
+                      store: gv.storePerInfo,
+                      child: StoreConnector<int, int>(
+                        builder: (BuildContext context, int intTemp) {
+                          return ClsPersonalInformation(intTemp);
+                        },
+                        converter: (Store<int> sintTemp) {
+                          return sintTemp.state;
+                        },
+                      ),
+                    )));
+          };
+          break;
+        case 'SelectLanguage':
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => ClsSelectLanguage()),
+          );
+          break;
+        case 'Login':
+          gv.resetVars();
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => ClsLogin()),
+          );
+          break;
+        default:
+          break;
+      }
+      Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
+    } else {
+      sd.showAlert(context, ls.gs('Logout'),ls.gs( 'AreYouSure')+'?','Logout2');
     }
-    Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
   }
 
 

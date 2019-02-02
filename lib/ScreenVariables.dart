@@ -1,4 +1,4 @@
-// This program 'Template Settings' sets the screen/font height/width etc.
+// This program sets the screen/font height/width etc.
 
 // Import Flutter Darts
 import 'dart:ui';

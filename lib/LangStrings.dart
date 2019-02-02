@@ -6,7 +6,7 @@
 // 3. Modify the function gs()
 
 
-import 'gv.dart';
+import 'GlobalVariables.dart';
 
 class ls {
   // strLang is the Current Language selected by the User
@@ -35,6 +35,7 @@ class ls {
     { 'Title':'ActivationCode', 'Content':'Activation Code'},
     { 'Title':'ActivationCodeWarning', 'Content':'Activation Email might be inside TRASH BIN'},
     { 'Title':'ActivationEmailSent', 'Content':'Activation Email Sent'},
+    { 'Title':'AreYouSure', 'Content':'Are You Sure'},
     { 'Title':'Change', 'Content':'Change'},
     { 'Title':'ChangeEmailNeedActivateAgain', 'Content':'Need to Re-Activate if email is changed'},
     { 'Title':'ChangePassword', 'Content':'Change Password'},
@@ -68,6 +69,7 @@ class ls {
     { 'Title':'NetworkConnected', 'Content':'Network Connected'},
     { 'Title':'NetworkDisconnected', 'Content':'Network Disonnected'},
     { 'Title':'NetworkDisconnectedTryLater', 'Content':'Network Disonnected, try again later'},
+    { 'Title':'No', 'Content':'No'},
     { 'Title':'NothingChanged', 'Content':'Nothing Changed'},
     { 'Title':'OldPasswordCannotBeTheSameAsNewPassword', 'Content':'Old Password cannot be the same as New Password'},
     { 'Title':'OldPasswordIsNotCorrect', 'Content':'Old Password is not correct'},
@@ -84,6 +86,7 @@ class ls {
     { 'Title':'UserPW', 'Content':'User Password'},
     { 'Title':'UserPWConfirm', 'Content':'Confirm Password'},
     { 'Title':'UserPWErrorMinMaxLen', 'Content':'User Password should be between ' + gv.intDefUserPWMinLen.toString() + ' and ' + gv.intDefUserPWMaxLen.toString() + ' bytes'},
+    { 'Title':'Yes', 'Content':'Yes'},
 
     { 'Title':'HomeContent', 'Content':'Home Content'},
   ];
@@ -101,6 +104,7 @@ class ls {
     { 'Title':'ActivationCode', 'Content':'激活码'},
     { 'Title':'ActivationCodeWarning', 'Content':'激活电邮可能在垃圾邮箱里'},
     { 'Title':'ActivationEmailSent', 'Content':'已发生激活电邮'},
+    { 'Title':'AreYouSure', 'Content':'确定吗'},
     { 'Title':'Change', 'Content':'更改'},
     { 'Title':'ChangeEmailNeedActivateAgain', 'Content':'若更改电邮需要重新激活账户'},
     { 'Title':'ChangePassword', 'Content':'更改密码'},
@@ -134,6 +138,7 @@ class ls {
     { 'Title':'NetworkConnected', 'Content':'已连接网络'},
     { 'Title':'NetworkDisconnected', 'Content':'网络已断开'},
     { 'Title':'NetworkDisconnectedTryLater', 'Content':'网络已断开，请稍后再试'},
+    { 'Title':'No', 'Content':'否'},
     { 'Title':'NothingChanged', 'Content':'没有任何改变'},
     { 'Title':'OldPasswordCannotBeTheSameAsNewPassword', 'Content':'旧密码不能和新密码一样'},
     { 'Title':'OldPasswordIsNotCorrect', 'Content':'旧密码不正确'},
@@ -150,6 +155,7 @@ class ls {
     { 'Title':'UserPW', 'Content':'账户密碼'},
     { 'Title':'UserPWConfirm', 'Content':'确认密码'},
     { 'Title':'UserPWErrorMinMaxLen', 'Content':'账户密码 应在 ' + gv.intDefUserPWMinLen.toString() + ' 至 ' + gv.intDefUserPWMaxLen.toString() + ' 位元以内'},
+    { 'Title':'Yes', 'Content':'是'},
 
     { 'Title':'HomeContent', 'Content':'首页内容'},
   ];
@@ -167,6 +173,7 @@ class ls {
     { 'Title':'ActivationCode', 'Content':'激活碼'},
     { 'Title':'ActivationCodeWarning', 'Content':'激活電郵可能在垃圾郵箱裏'},
     { 'Title':'ActivationEmailSent', 'Content':'已發送激活電郵'},
+    { 'Title':'AreYouSure', 'Content':'確定嗎'},
     { 'Title':'Change', 'Content':'更改'},
     { 'Title':'ChangeEmailNeedActivateAgain', 'Content':'若更改電郵需要重新激活賬戶'},
     { 'Title':'ChangePassword', 'Content':'更改密碼'},
@@ -200,6 +207,7 @@ class ls {
     { 'Title':'NetworkConnected', 'Content':'已連接網絡'},
     { 'Title':'NetworkDisconnected', 'Content':'網絡已斷開'},
     { 'Title':'NetworkDisconnectedTryLater', 'Content':'網絡已斷開，請稍後再試'},
+    { 'Title':'No', 'Content':'否'},
     { 'Title':'NothingChanged', 'Content':'沒有任何改變'},
     { 'Title':'OldPasswordCannotBeTheSameAsNewPassword', 'Content':'舊密碼不能和新密碼一樣'},
     { 'Title':'OldPasswordIsNotCorrect', 'Content':'舊密碼不正確'},
@@ -216,6 +224,7 @@ class ls {
     { 'Title':'UserPW', 'Content':'賬戶密碼'},
     { 'Title':'UserPWConfirm', 'Content':'確認密碼'},
     { 'Title':'UserPWErrorMinMaxLen', 'Content':'賬戶密碼 應在' + gv.intDefUserPWMinLen.toString() + ' 至 ' + gv.intDefUserPWMaxLen.toString() + ' 位元以內'},
+    { 'Title':'Yes', 'Content':'是'},
 
     { 'Title':'HomeContent', 'Content':'首頁內容'},
   ];

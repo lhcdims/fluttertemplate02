@@ -1,0 +1,12 @@
+{
+  "name": "ken068802nodejs",
+  "version": "0.0.0",
+  "description": "ken068802nodejs",
+  "main": "app.js",
+  "author": {
+    "name": "Administrator"
+  },
+  "dependencies": {
+    "nodemailer": "^5.1.1"
+  }
+}

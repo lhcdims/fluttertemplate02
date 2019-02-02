@@ -1,47 +1,53 @@
-// This program display the Register Page
+// This program display the Login Page
 
 // Import Flutter Darts
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_redux/flutter_redux.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
+import 'package:redux/redux.dart';
 import 'package:threading/threading.dart';
 
 // Import Self Darts
-import 'gv.dart';
+import 'GlobalVariables.dart';
 import 'LangStrings.dart';
-import 'tmpSettings.dart';
+import 'ScreenVariables.dart';
 import 'Utilities.dart';
 
 // Import Pages
-import 'bottom.dart';
-import 'ForgetPassword.dart';
-import 'Login.dart';
+import 'PageActivate.dart';
+import 'BottomBar.dart';
+import 'PageForgetPassword.dart';
+import 'PageRegister.dart';
+import 'PageSettingsMain.dart';
 
-// Register Page
-class ClsRegister extends StatefulWidget {
+// Login Page
+class ClsLogin extends StatefulWidget {
   @override
-  _ClsRegisterState createState() => _ClsRegisterState();
+  _ClsLoginState createState() => _ClsLoginState();
 }
 
-class _ClsRegisterState extends State<ClsRegister> {
+class _ClsLoginState extends State<ClsLogin> {
   @override
   initState() {
     super.initState();
     // Add listeners to this class, if any
   }
 
-  void funRegisterLogin() {
-    // From Register to Login
+  void funLoginRegister() {
+    // From Login to Register
     gv.gstrLastPage = gv.gstrCurPage;
-    gv.gstrCurPage = 'Login';
+    gv.gstrCurPage = 'Register';
 
-    // Goto Login
+    // Goto Register
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => ClsLogin()),
+      MaterialPageRoute(builder: (context) => ClsRegister()),
     );
     Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
   }
+
+
 
   void funLoginForgetPW() {
     // From Login to ForgetPW
@@ -57,7 +63,8 @@ class _ClsRegisterState extends State<ClsRegister> {
   }
 
 
-  void funRegisterPressed() {
+
+  void funLoginPressed() {
     if (!gv.bolLoading) {
       gv.resetVars();
 
@@ -65,39 +72,14 @@ class _ClsRegisterState extends State<ClsRegister> {
       if (ut.stringBytes(ctlUserID.text) < gv.intDefUserIDMinLen ||
           ut.stringBytes(ctlUserID.text) > gv.intDefUserIDMaxLen) {
         setState(() {
-          gv.strRegisterError = ls.gs('UserIDErrorMinMaxLen');
-        });
-        return;
-      }
-      if (ut.stringBytes(ctlUserNick.text) < gv.intDefUserNickMinLen ||
-          ut.stringBytes(ctlUserNick.text) > gv.intDefUserNickMaxLen) {
-        setState(() {
-          gv.strRegisterError = ls.gs('UserNickErrorMinMaxLen');
-        });
-        return;
-      }
-      if (!ut.isEmail(ctlUserEmail.text)) {
-        setState(() {
-          gv.strRegisterError = ls.gs('EmailAddressFormatError');
-        });
-        return;
-      }
-      if (ut.stringBytes(ctlUserEmail.text) > gv.intDefEmailMaxLen) {
-        setState(() {
-          gv.strRegisterError = ls.gs('EmailAddressFormatError');
+          gv.strLoginError = ls.gs('UserIDErrorMinMaxLen');
         });
         return;
       }
       if (ut.stringBytes(ctlUserPW.text) < gv.intDefUserPWMinLen ||
           ut.stringBytes(ctlUserPW.text) > gv.intDefUserPWMaxLen) {
         setState(() {
-          gv.strRegisterError = ls.gs('UserPWErrorMinMaxLen');
-        });
-        return;
-      }
-      if (ut.stringBytes(ctlUserPW.text) != ut.stringBytes(ctlUserPWConfirm.text)) {
-        setState(() {
-          gv.strRegisterError = ls.gs('RegisterErrorConfirmPassword');
+          gv.strLoginError = ls.gs('UserPWErrorMinMaxLen');
         });
         return;
       }
@@ -105,13 +87,13 @@ class _ClsRegisterState extends State<ClsRegister> {
       // Check Network Connection
       if (!gv.gbolSIOConnected) {
         setState(() {
-          gv.strRegisterError = ls.gs('NetworkDisconnectedTryLater');
+          gv.strLoginError = ls.gs('NetworkDisconnectedTryLater');
         });
         return;
       }
 
-      // Reset register result
-      gv.aryRegisterResult = [];
+      // Reset login result
+      gv.aryLoginResult = [];
 
       // Show Loading
       setState(() {
@@ -119,49 +101,84 @@ class _ClsRegisterState extends State<ClsRegister> {
       });
 
       // Send to server that client wants to login
-      gv.socket.emit('Register', [ctlUserID.text, ctlUserPW.text, ctlUserNick.text, ctlUserEmail.text, gv.gstrLang]);
+      gv.socket.emit('LoginToServer', [ctlUserID.text, ctlUserPW.text, true]);
 
       // Start Login Time in ms
-      gv.timRegister = DateTime.now().millisecondsSinceEpoch;
+      gv.timLogin = DateTime.now().millisecondsSinceEpoch;
 
       new Future.delayed(new Duration(milliseconds: 100), () async {
         while (gv.bolLoading) {
           await Thread.sleep(100);
           // Use string to check if it is array
-          if (gv.aryRegisterResult.toString() == '[]') {
-            // this means the server didnt return any value
-            if (DateTime.now().millisecondsSinceEpoch - gv.timRegister > gv.intSocketTimeout) {
+          if (gv.aryLoginResult.toString() == '[]') {
+            // this means the server not yet return any value
+            if (DateTime.now().millisecondsSinceEpoch - gv.timLogin > gv.intSocketTimeout) {
+              // Assume Login Fail after 5 seconds (gv.intSocketTimeout = 5000 in gv.dart)
+              gv.strLoginError = ls.gs('LoginErrorTimeout');
               setState(() {
                 gv.bolLoading = false;
               });
-              gv.strRegisterError = ls.gs('RegisterErrorTimeout');
             } else {
-              // Not Yet Timout, so Continue Loading
+              // Not Yet Timeout, so Continue Loading
             }
           } else {
             // this means that server has returned some values
-            if (gv.aryRegisterResult[0] == '0000') {
+            if (gv.aryLoginResult[0] == '0000') {
               gv.bolLoading = false;
 
-              // Show Register Success
-              ut.showToast(ls.gs('RegisterSuccess'), true);
+              // Save Login ID & PW in Memory
+              gv.strLoginID = ctlUserID.text;
+              gv.strLoginPW = ctlUserPW.text;
 
-              // Goto Login
-              gv.gstrLastPage = 'Register';
-              gv.gstrCurPage = 'Login';
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => ClsLogin()),
-              );
+              // Save Login ID & PW in SharedPreferences
+              gv.setString('strLoginID', gv.strLoginID);
+              gv.setString('strLoginPW', gv.strLoginPW);
+
+              // Goto Activate or SettingsMain
+              if (gv.strLoginStatus == 'D') {
+                // Show Account Disabled
+                ut.showToast(ls.gs('AccountDisabled'), true);
+              } else {
+                // Show Login Success
+                ut.showToast(ls.gs('LoginSuccess'), true);
+              }
+
+              if (gv.strLoginStatus == 'A') {
+                // Goto Activate
+                gv.gstrCurPage = 'ActivateAccount';
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => ClsActivateAccount()),
+                );
+              } else {
+                // Goto Settings Main
+                gv.gstrCurPage = 'SettingsMain';
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => StoreProvider(
+                          store: gv.storeSettingsMain,
+                          child: StoreConnector<int, int>(
+                            builder: (BuildContext context, int intTemp) {
+                              return ClsSettingsMain(intTemp);
+                            },
+                            converter: (Store<int> sintTemp) {
+                              return sintTemp.state;
+                            },
+                          ),
+                        )));
+              }
+              // Reset Routes
               Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
-            } else if (gv.aryRegisterResult[0] == '1000') {
-              gv.strRegisterError = ls.gs('RegisterErrorUserIDExist');
+            } else if (gv.aryLoginResult[0] == '1000') {
+              // Show Login Failed
+              gv.strLoginError = ls.gs('LoginErrorUserIDPassword');
               setState(() {
                 gv.bolLoading = false;
               });
             } else {
-              // Show Register Failed
-              gv.strRegisterError = ls.gs('RegisterErrorSystem');
+              // Other Error, Login Failed
+              gv.strLoginError = ls.gs('LoginErrorSystem');
               setState(() {
                 gv.bolLoading = false;
               });
@@ -173,10 +190,7 @@ class _ClsRegisterState extends State<ClsRegister> {
   }
 
   final ctlUserID = TextEditingController();
-  final ctlUserNick = TextEditingController();
-  final ctlUserEmail = TextEditingController();
   final ctlUserPW = TextEditingController();
-  final ctlUserPWConfirm = TextEditingController();
 
   Widget Body() {
     return Center(
@@ -191,7 +205,8 @@ class _ClsRegisterState extends State<ClsRegister> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
                 Text(' '),
-                Text(gv.strRegisterError, style: TextStyle(color: Colors.red)),
+                Text(gv.strLoginError, style: TextStyle(color: Colors.red)),
+                Text(' '),
                 Text(' '),
                 Row(
                   children: <Widget>[
@@ -205,48 +220,6 @@ class _ClsRegisterState extends State<ClsRegister> {
                           hintText: ls.gs('UserID'),
                           contentPadding:
                               EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
-                          border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(32.0)),
-                        ),
-                      ),
-                    ),
-                    Text(ut.Space(sv.gintSpaceTextField)),
-                  ],
-                ),
-                Text(' '),
-                Row(
-                  children: <Widget>[
-                    Text(ut.Space(sv.gintSpaceTextField)),
-                    Expanded(
-                      child: TextField(
-                        controller: ctlUserNick,
-                        keyboardType: TextInputType.text,
-                        autofocus: false,
-                        decoration: InputDecoration(
-                          hintText: ls.gs('UserNick'),
-                          contentPadding:
-                          EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
-                          border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(32.0)),
-                        ),
-                      ),
-                    ),
-                    Text(ut.Space(sv.gintSpaceTextField)),
-                  ],
-                ),
-                Text(' '),
-                Row(
-                  children: <Widget>[
-                    Text(ut.Space(sv.gintSpaceTextField)),
-                    Expanded(
-                      child: TextField(
-                        controller: ctlUserEmail,
-                        keyboardType: TextInputType.text,
-                        autofocus: false,
-                        decoration: InputDecoration(
-                          hintText: ls.gs('EmailAddress'),
-                          contentPadding:
-                          EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
                           border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(32.0)),
                         ),
@@ -277,27 +250,6 @@ class _ClsRegisterState extends State<ClsRegister> {
                   ],
                 ),
                 Text(' '),
-                Row(
-                  children: <Widget>[
-                    Text(ut.Space(sv.gintSpaceTextField)),
-                    Expanded(
-                      child: TextField(
-                        controller: ctlUserPWConfirm,
-                        autofocus: false,
-                        obscureText: true,
-                        decoration: InputDecoration(
-                          hintText: ls.gs('UserPWConfirm'),
-                          contentPadding:
-                          EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 10.0),
-                          border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(32.0)),
-                        ),
-                      ),
-                    ),
-                    Text(ut.Space(sv.gintSpaceTextField)),
-                  ],
-                ),
-                Text(' '),
                 Text(' '),
                 Row(
                   children: <Widget>[
@@ -311,8 +263,8 @@ class _ClsRegisterState extends State<ClsRegister> {
                                   sv.dblDefaultRoundRadius)),
                           textColor: Colors.white,
                           color: Colors.greenAccent,
-                          onPressed: () => funRegisterPressed(),
-                          child: Text(ls.gs('Register'),
+                          onPressed: () => funLoginPressed(),
+                          child: Text(ls.gs('Login'),
                               style: TextStyle(
                                   fontSize: sv.dblDefaultFontSize * 1)),
                         ),
@@ -322,6 +274,7 @@ class _ClsRegisterState extends State<ClsRegister> {
                   ],
                 ),
                 Text(' '),
+                Text(' '),
                 Row(
                   children: <Widget>[
                     Text(ut.Space(5)),
@@ -330,9 +283,9 @@ class _ClsRegisterState extends State<ClsRegister> {
                         height: sv.dblDefaultFontSize * 2.5,
                         child: FlatButton(
                             textColor: Colors.blue,
-                            onPressed: () => funRegisterLogin(),
+                            onPressed: () => funLoginRegister(),
                             child: Text(
-                              ls.gs('Login'),
+                              ls.gs('Register'),
                               style: TextStyle(
                                 fontSize: sv.dblDefaultFontSize * 1,
                                 decoration: TextDecoration.underline,
@@ -373,7 +326,7 @@ class _ClsRegisterState extends State<ClsRegister> {
       appBar: PreferredSize(
         child: AppBar(
           title: Text(
-            ls.gs('Register'),
+            ls.gs('Login'),
             style: TextStyle(fontSize: sv.dblDefaultFontSize),
           ),
         ),
