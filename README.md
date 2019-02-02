@@ -1,16 +1,23 @@
 # fluttertemplate02
 
-Including all features of fluttertemplate01, as well as:
+This template allows you to create an ONLINE MULTI-USER APP with standard features including:
 
-1. socket.io
+1. All features of fluttertemplate01 (see my other project), such as Multi-Language Support, Bottom Navigation Bar, Pages are stored in separated dart files, Height/Width/Font Size set according to screen orientation.
 
-2. Register / Login / Forget Password / Change Password / Activate Account / Change Personal Information etc......
+2. New Features in fluttertemplate02:
 
-3. Redux State Management
+- socket.io
 
-4. 'Page Loading Circular Progress' using Modal_Progress_Hud
+- Register / Login / Forget Password / Change Password / Activate Account / Change Personal Information etc......
 
-5. 
+-. Redux State Management
+
+- 'Page Loading Circular Progress' using Modal_Progress_Hud (work in both Stateless and Stateful Pages)
+
+
+## Screen Shot Animation Gif
+
+https://raw.githubusercontent.com/lhcdims/fluttertemplate02/master/images/ft02.gif
 
 
 ## Installation Instruction
@@ -30,7 +37,7 @@ And:
 - usr_joindt (datetime, Join Date & Time)
 - usr_status (char 1, Status: 'A' - Waiting for Activation, 'E' - Enabled/Activated)
 - usr_confirmcode (varchar 10, a random generated Activation Code)
-- usr_picture (mediumtext, used for storing User Picture in base64)
+- usr_picture (mediumtext, used for storing User Picture in base64, allow NULL)
 
 3. Make sure you get packages listed in pubspec.yaml
 
