@@ -103,7 +103,7 @@ class ClsSettingsMain extends StatelessWidget {
       }
       Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
     } else {
-      sd.showAlert(context, ls.gs('Logout'),ls.gs( 'AreYouSure')+'?','Logout2');
+      sd.showAlert(context, ls.gs('Logout'),ls.gs( 'AreYouSure')+'?','Logout');
     }
   }
 

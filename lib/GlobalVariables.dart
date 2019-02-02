@@ -147,7 +147,7 @@ class gv {
   static const String URI = 'http://thisapp.zephan.top:10531';
   static bool gbolSIOConnected = false;
   static SocketIO socket;
-  static int intSocketTimeout = 5000;
+  static int intSocketTimeout = 10000;
   static int intHBInterval = 5000;
 
   static initSocket() async {
@@ -165,7 +165,6 @@ class gv {
         if (strLoginID != '') {
           timLogin = DateTime.now().millisecondsSinceEpoch;
           socket.emit('LoginToServer', [strLoginID, strLoginPW, false]);
-          print('First Time Check Login');
         }
       }
     });

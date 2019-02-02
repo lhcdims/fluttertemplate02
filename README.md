@@ -4,9 +4,13 @@ Including all features of fluttertemplate01, as well as:
 
 1. socket.io
 
-2. Register / Login / Forget Password / Change Password etc......
+2. Register / Login / Forget Password / Change Password / Activate Account / Change Personal Information etc......
 
 3. Redux State Management
+
+4. 'Page Loading Circular Progress' using Modal_Progress_Hud
+
+5. 
 
 
 ## Installation Instruction
