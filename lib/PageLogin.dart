@@ -113,7 +113,7 @@ class _ClsLoginState extends State<ClsLogin> {
           if (gv.aryLoginResult.toString() == '[]') {
             // this means the server not yet return any value
             if (DateTime.now().millisecondsSinceEpoch - gv.timLogin > gv.intSocketTimeout) {
-              // Assume Login Fail after 5 seconds (gv.intSocketTimeout = 5000 in gv.dart)
+              // Assume Login Fail after 10 seconds (gv.intSocketTimeout = 10000 in gv.dart)
               gv.strLoginError = ls.gs('LoginErrorTimeout');
               setState(() {
                 gv.bolLoading = false;
