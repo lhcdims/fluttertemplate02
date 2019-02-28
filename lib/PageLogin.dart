@@ -40,11 +40,10 @@ class _ClsLoginState extends State<ClsLogin> {
     gv.gstrCurPage = 'Register';
 
     // Goto Register
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => ClsRegister()),
+    Navigator.pushAndRemoveUntil(context,
+      MaterialPageRoute(builder: (BuildContext context) => ClsRegister()),
+          (_) => false,
     );
-    Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
   }
 
 
@@ -55,11 +54,10 @@ class _ClsLoginState extends State<ClsLogin> {
     gv.gstrCurPage = 'ForgetPassword';
 
     // Goto Register
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => ClsForgetPassword()),
+    Navigator.pushAndRemoveUntil(context,
+      MaterialPageRoute(builder: (BuildContext context) => ClsForgetPassword()),
+          (_) => false,
     );
-    Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
   }
 
 
@@ -146,30 +144,30 @@ class _ClsLoginState extends State<ClsLogin> {
               if (gv.strLoginStatus == 'A') {
                 // Goto Activate
                 gv.gstrCurPage = 'ActivateAccount';
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => ClsActivateAccount()),
+                Navigator.pushAndRemoveUntil(context,
+                  MaterialPageRoute(builder: (BuildContext context) => ClsActivateAccount()),
+                      (_) => false,
                 );
               } else {
                 // Goto Settings Main
                 gv.gstrCurPage = 'SettingsMain';
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => StoreProvider(
-                          store: gv.storeSettingsMain,
-                          child: StoreConnector<int, int>(
-                            builder: (BuildContext context, int intTemp) {
-                              return ClsSettingsMain(intTemp);
-                            },
-                            converter: (Store<int> sintTemp) {
-                              return sintTemp.state;
-                            },
-                          ),
-                        )));
+                Navigator.pushAndRemoveUntil(context,
+                  MaterialPageRoute(
+                      builder: (context) => StoreProvider(
+                        store: gv.storeSettingsMain,
+                        child: StoreConnector<int, int>(
+                          builder: (BuildContext context, int intTemp) {
+                            return ClsSettingsMain(intTemp);
+                          },
+                          converter: (Store<int> sintTemp) {
+                            return sintTemp.state;
+                          },
+                        ),
+                      )),
+                      (_) => false,
+                );
               }
               // Reset Routes
-              Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
             } else if (gv.aryLoginResult[0] == '1000') {
               // Show Login Failed
               gv.strLoginError = ls.gs('LoginErrorUserIDPassword');

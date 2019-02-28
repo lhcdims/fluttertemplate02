@@ -47,16 +47,16 @@ class ClsSettingsMain extends StatelessWidget {
       switch (strProg) {
         case 'ActivateAccount':
           gv.resetVars();
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => ClsActivateAccount()),
+          Navigator.pushAndRemoveUntil(context,
+            MaterialPageRoute(builder: (BuildContext context) => ClsActivateAccount()),
+                (_) => false,
           );
           break;
         case 'ChangePassword':
           gv.resetVars();
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => ClsChangePassword()),
+          Navigator.pushAndRemoveUntil(context,
+            MaterialPageRoute(builder: (BuildContext context) => ClsChangePassword()),
+                (_) => false,
           );
           break;
         case 'PersonalInformation':
@@ -69,39 +69,39 @@ class ClsSettingsMain extends StatelessWidget {
             }
 
             gv.bolPerInfoFirstCall = true;
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => StoreProvider(
-                      store: gv.storePerInfo,
-                      child: StoreConnector<int, int>(
-                        builder: (BuildContext context, int intTemp) {
-                          return ClsPersonalInformation(intTemp);
-                        },
-                        converter: (Store<int> sintTemp) {
-                          return sintTemp.state;
-                        },
-                      ),
-                    )));
+            Navigator.pushAndRemoveUntil(context,
+              MaterialPageRoute(
+                  builder: (context) => StoreProvider(
+                    store: gv.storePerInfo,
+                    child: StoreConnector<int, int>(
+                      builder: (BuildContext context, int intTemp) {
+                        return ClsPersonalInformation(intTemp);
+                      },
+                      converter: (Store<int> sintTemp) {
+                        return sintTemp.state;
+                      },
+                    ),
+                  )),
+                  (_) => false,
+            );
           };
           break;
         case 'SelectLanguage':
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => ClsSelectLanguage()),
+          Navigator.pushAndRemoveUntil(context,
+            MaterialPageRoute(builder: (BuildContext context) => ClsSelectLanguage()),
+                (_) => false,
           );
           break;
         case 'Login':
           gv.resetVars();
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => ClsLogin()),
+          Navigator.pushAndRemoveUntil(context,
+            MaterialPageRoute(builder: (BuildContext context) => ClsLogin()),
+                (_) => false,
           );
           break;
         default:
           break;
       }
-      Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
     } else {
       sd.showAlert(context, ls.gs('Logout'),ls.gs( 'AreYouSure')+'?','Logout');
     }

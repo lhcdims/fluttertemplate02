@@ -95,22 +95,21 @@ class _ClsForgetPasswordState extends State<ClsForgetPassword> {
 
               // Goto Settings Main
               gv.gstrLastPage = gv.gstrCurPage;
-              gv.gstrCurPage = 'SettingsMain';
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => StoreProvider(
-                        store: gv.storeSettingsMain,
-                        child: StoreConnector<int, int>(
-                          builder: (BuildContext context, int intTemp) {
-                            return ClsSettingsMain(intTemp);
-                          },
-                          converter: (Store<int> sintTemp) {
-                            return sintTemp.state;
-                          },
-                        ),
-                      )));
-              Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
+              Navigator.pushAndRemoveUntil(context,
+                MaterialPageRoute(
+                    builder: (context) => StoreProvider(
+                      store: gv.storeSettingsMain,
+                      child: StoreConnector<int, int>(
+                        builder: (BuildContext context, int intTemp) {
+                          return ClsSettingsMain(intTemp);
+                        },
+                        converter: (Store<int> sintTemp) {
+                          return sintTemp.state;
+                        },
+                      ),
+                    )),
+                    (_) => false,
+              );
             } else if (gv.aryForgetPWResult[0] == '1000') {
               gv.strForgetPWError = ls.gs('EmailNotFound');
               setState(() {

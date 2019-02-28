@@ -1,9 +1,14 @@
-// vars
+﻿// vars
 var gbolDebug = true;
 var aryClients = [];
 var fs = require('fs');
 var intHBTimeout = 30000;
 var bolAllowDuplicateLogin = false;
+
+
+var base64 = require('base-64');
+var utf8 = require('utf8');
+
 
 // Email Related
 var nodemailer = require('nodemailer');
@@ -234,6 +239,11 @@ socketAll.on('connection', function (socket) {
 
     socket.on('ForgetPassword', function (strUsrEmail, strLang) {
         funForgetPassword(strUsrEmail, socket.id, strLang);
+    });
+
+    socket.on('ClientNeedAIML', function (strAIML) {
+        funUpdateServerMonitor("Client Need Python aiml: " + strAIML + ' socketid: ' + socket.id, false);
+        funRequestPythonAIML(strAIML, socket.id);
     });
 
     // Catch any unexpected error, to avoid system hangs
@@ -746,6 +756,216 @@ function funForgetPWSendEmail(strUsrEmail, result, strLang) {
         // Send Email System Error
     }
 }
+
+
+
+
+
+
+
+// Here are functions for AIML
+
+// For client using app
+var aryAIML = [];
+var gintAIMLCount = 0;
+
+function funRequestPythonAIML(strAIML, socID) {
+    // Increate Counter
+    gintAIMLCount += 1;
+
+    // Push into Array
+    aryAIML.push({ count: gintAIMLCount, sockID: socID  });
+    
+
+    //strAIML = "你好嗎你好嗎";
+
+
+    let bytesAIML = utf8.encode(strAIML);
+    let b64AIML = base64.encode(bytesAIML);
+    //strAIML = Buffer.from(strAIML).toString('utf8');
+    funUpdateServerMonitor("b64AIML: " + b64AIML, true);
+
+
+    // Here Call Python AIML
+    // let strSendToPy = 'MESSAGE:' + gintAIMLCount + ';' + strAIML;
+    let strSendToPy = 'MESSAGE:' + gintAIMLCount + ';' + b64AIML;
+    funUpdateServerMonitor("Server send to py client message: " + strSendToPy, true);
+
+    // there may be no pyAIML
+    try {
+        //strSendToPy = Buffer.from(strSendToPy).toString('base64');
+        pyAIML[0].socketID.write(utf8Encode(strSendToPy));
+        //pyAIML[0].socketID.write(strAIML);
+    } catch (err) {
+        // return to client
+        socketAll.to(`${socID}`).emit('SocketSendAIMLToClient', ['No aiml yet']);
+        funUpdateServerMonitor("Sent aiml answer to client: " + 'No aiml yet'  + ' socketid: ' + socID, false);
+        aryAIML.splice(aryAIML.length - 1, 1);
+    }
+}
+
+
+function funAIMLEndRes(intCount, strAnswer) {
+    // Get Count in Array
+    for (let i = 0; i < aryAIML.length; i++) {
+        if (intCount === aryAIML[i].count) {
+            socketAll.to(`${aryAIML[i].sockID}`).emit('SocketSendAIMLToClient', [strAnswer]);
+            funUpdateServerMonitor("Sent aiml answer to client: " + strAnswer, false);
+
+            aryAIML.splice(i, 1);
+            break;
+        }
+    }
+
+}
+
+
+
+// For python clients, they translate aiml questions to answers
+
+// vars
+var pyAIMLnet = require('net');
+var pyAIMLPORT = 10532;
+
+// pyAIML contains all the Python AIML Clients
+// actually, there is only 1
+var pyAIML = [];
+
+
+// Below Bigaibot Related
+
+try {
+    var pyAIMLServer = pyAIMLnet.createServer(function (sock) {
+        try {
+            // If client connect, push client into List
+            let dtTemp = Date.now();
+            sock.name = sock.remoteAddress + ':' + sock.remotePort;
+            pyAIML.push({ userID: "", socketID: sock, dtLastHB: dtTemp });
+
+            // No need to setEncoding
+            // sock.setEncoding('binary');
+
+            // Set No Delay so that WRITE will be sent immediately
+            sock.setNoDelay(true);
+
+            // ????????????? - ????????????????socket????
+            funUpdateServerMonitor('pyAIML CONNECTED', true);
+            funUpdateServerMonitor('pyAIML CONNECTED: ' +
+                sock.remoteAddress + ':' + sock.remotePort, true);
+
+            // ????socket?????????"data"?????????
+            sock.on('data', function (data) {
+                funpyAIMLGotDataFromClient(sock, data);
+            });
+
+            // ????socket?????????"close"?????????
+            sock.on('close', function (data) {
+                funUpdateServerMonitor('pyAIML DISCONNECTED: ' +
+                    sock.remoteAddress + ':' + sock.remotePort, true);
+                funpyAIMLRemoveUser(sock);
+            });
+
+            sock.on('error', function () {
+                // Error
+            });
+        } catch (err) {
+            funUpdateServerMonitor("pyAIML Create Server Error: " + err, true);
+        }
+    }).listen(pyAIMLPORT);
+} catch (Err) {
+    //
+}
+
+
+funUpdateConsole('pyAIML Socket Server Listening on: ' +
+    pyAIMLPORT, true);
+
+
+function funpyAIMLGotDataFromClient(sock, data) {
+    try {
+        let i = 0;
+        let strTemp = data.toString('utf-8');
+        if (strTemp === 'HBHBHBHB') {
+            // At Least 8 bytes must be sent, for example, send only HB, EV3 will receive NOTHING
+            // Also, must use utf8Encode, otherwise EV3 will also receive NOTHING
+            // HeartBeat
+            let dtTemp = Date.now();
+            for (i = 0; i < pyAIML.length; i++) {
+                if (pyAIML[i].socketID.name === sock.name) {
+                    pyAIML[i].dtLastHB = dtTemp;
+                }
+            }
+            let bolTemp = sock.write(utf8Encode('HBHBHBHB'));
+        } else if (strTemp.indexOf('|||LOGIN') === 0) {
+            // Login
+            for (i = 0; i < pyAIML.length; i++) {
+                if (pyAIML[i].socketID.name === sock.name) {
+                    // Suppose UserID is what after the first 8 chars |||LOGIN
+                    pyAIML[i].userID = strTemp.substring(8);
+                    pyAIML[i].socketID.write(utf8Encode('|LOGINOK'));
+                    //pyAIML[i].socketID.write('|LOGINOK');
+                    funUpdateServerMonitor("pyAIML Client Login ID: " + strTemp.substring(8) + "   Address: " + sock.name, true);
+                }
+            }
+        } else if (strTemp.indexOf('ANSWER::') === 0) {
+            let strAnswerTemp = strTemp.substring(8);
+
+            // Get Count
+            let intTemp = strAnswerTemp.indexOf(';');
+            let intCount = parseInt(strAnswerTemp.substring(0, intTemp));
+            let strAnswer = strAnswerTemp.substring(intTemp + 1);
+            funUpdateServerMonitor("pyAIML Answer: " + strAnswer, true);
+
+            //socket.emit('BGBClientToServer', strAnswer);
+
+            funAIMLEndRes(intCount, strAnswer);
+        } else {
+            //
+        }
+    } catch (err) {
+        funUpdateServerMonitor("funpyAIMLGotoDataFromClient Error: " + err, true);
+    }
+}
+
+
+function funpyAIMLRemoveUser(sock) {
+    try {
+        // Remove User
+        for (let i = 0; i < pyAIML.length; i++) {
+            if (pyAIML[i].socketID.name === sock.name) {
+                try {
+                    pyAIML.splice(i, 1);
+                    funUpdateServerMonitor("pyAIML Client Removed: " + sock.name, true);
+                    break;
+                } catch (err) {
+                    //
+                }
+            }
+        }
+    } catch (err) {
+        funUpdateServerMonitor("funpyAIMLRemoveUser Error: " + err, true);
+    }
+}
+
+
+
+function funpyAIMLSendDataToClient(strUserID, strMsg) {
+    try {
+        funUpdateServerMonitor("Start Send Data to pyAIML ID: " + strUserID + " Message: " + strMsg, true);
+        // Send Data To Client
+        for (let i = 0; i < pyAIML.length; i++) {
+            if (pyAIML[i].userID === strUserID) {
+                pyAIML[i].socketID.write(utf8Encode(strMsg));
+                funUpdateServerMonitor("Sent Data to pyAIML ID: " + strUserID + " Message: " + strMsg, true);
+            }
+        }
+    } catch (err) {
+        funUpdateServerMonitor("funpyAIMLSendDataToClient Error: " + err, true);
+    }
+}
+
+
+
 
 
 

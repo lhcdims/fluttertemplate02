@@ -154,21 +154,21 @@ class _ClsActivateAccountState extends State<ClsActivateAccount> {
 
               // Goto SettingsMain
               gv.gstrCurPage = 'SettingsMain';
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => StoreProvider(
-                        store: gv.storeSettingsMain,
-                        child: StoreConnector<int, int>(
-                          builder: (BuildContext context, int intTemp) {
-                            return ClsSettingsMain(intTemp);
-                          },
-                          converter: (Store<int> sintTemp) {
-                            return sintTemp.state;
-                          },
-                        ),
-                      )));
-              Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
+              Navigator.pushAndRemoveUntil(context,
+                MaterialPageRoute(
+                    builder: (context) => StoreProvider(
+                      store: gv.storeSettingsMain,
+                      child: StoreConnector<int, int>(
+                        builder: (BuildContext context, int intTemp) {
+                          return ClsSettingsMain(intTemp);
+                        },
+                        converter: (Store<int> sintTemp) {
+                          return sintTemp.state;
+                        },
+                      ),
+                    )),
+                    (_) => false,
+              );
             } else if (gv.aryActivateResult[0] == '0100') {
               // Show Already Activate
               gv.bolLoading = false;
@@ -181,17 +181,21 @@ class _ClsActivateAccountState extends State<ClsActivateAccount> {
 
               // Goto SettingsMain
               gv.gstrCurPage = 'SettingsMain';
-              Navigator.push(
-                context,
+              Navigator.pushAndRemoveUntil(context,
                 MaterialPageRoute(
-                    builder: (context) => StoreConnector<int, int>(
+                    builder: (context) => StoreProvider(
+                      store: gv.storeSettingsMain,
+                      child: StoreConnector<int, int>(
                         builder: (BuildContext context, int intTemp) {
                           return ClsSettingsMain(intTemp);
-                        }, converter: (Store<int> sintTemp) {
-                      return sintTemp.state;
-                    })),
+                        },
+                        converter: (Store<int> sintTemp) {
+                          return sintTemp.state;
+                        },
+                      ),
+                    )),
+                    (_) => false,
               );
-              Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
             } else if (gv.aryActivateResult[0] == '0200') {
               // Show Account Disabled
               gv.strActivateError = ls.gs('AccountDisabled');

@@ -21,38 +21,35 @@ import 'PageSelectLanguage.dart';
 import 'PageSettingsMain.dart';
 
 // Main Program
-void main() {
+void main() async {
   // Set Orientation to PortraitUp
-  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
-      .then((_) {
-    // Init Screen Variables
-    sv.Init();
+  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+  // Init Screen Variables
+  await sv.Init();
 
-    // Init Global Vars and SharedPreference
-    gv.Init().then((_) {
-      // Get Previous Selected Language from SharedPreferences, if any
-      gv.gstrLang = gv.getString('strLang');
-      gv.strLoginID = gv.getString('strLoginID');
-      gv.strLoginPW = gv.getString('strLoginPW');
-      if (gv.gstrLang != '') {
-        // Set Current Language
-        ls.setLang(gv.gstrLang);
+  // Init Global Vars and SharedPreference
+  await gv.Init();
+  // Get Previous Selected Language from SharedPreferences, if any
+  gv.gstrLang = gv.getString('strLang');
+  gv.strLoginID = gv.getString('strLoginID');
+  gv.strLoginPW = gv.getString('strLoginPW');
+  if (gv.gstrLang != '') {
+    // Set Current Language
+    ls.setLang(gv.gstrLang);
 
-        // Already has Current Language, so set first page to SettingsMain
-        gv.gstrCurPage = 'SettingsMain';
-        gv.gstrLastPage = 'SettingsMain';
-      } else {
-        // First Time Use, set Current Language to English
-        ls.setLang('EN');
-      }
+    // Already has Current Language, so set first page to SettingsMain
+    gv.gstrCurPage = 'SettingsMain';
+    gv.gstrLastPage = 'SettingsMain';
+  } else {
+    // First Time Use, set Current Language to English
+    ls.setLang('EN');
+  }
 
-      // Run MainApp
-      runApp(new MyApp());
+  // Run MainApp
+  runApp(new MyApp());
 
-      // Init socket.io
-      gv.initSocket();
-    });
-  });
+  // Init socket.io
+  await gv.initSocket();
 }
 
 // Main App
@@ -98,16 +95,17 @@ class MainBody extends StatelessWidget {
         return ClsLogin();
         break;
       case 'PersonalInformation':
-        return
-          StoreProvider(
-            store: gv.storePerInfo,
-            child:StoreConnector<int, int>(
-              builder: (BuildContext context, int intTemp) {
-                return ClsPersonalInformation(intTemp);
-              }, converter: (Store<int> sintTemp) {
+        return StoreProvider(
+          store: gv.storePerInfo,
+          child: StoreConnector<int, int>(
+            builder: (BuildContext context, int intTemp) {
+              return ClsPersonalInformation(intTemp);
+            },
+            converter: (Store<int> sintTemp) {
               return sintTemp.state;
-            },),
-          );
+            },
+          ),
+        );
         break;
       case 'Register':
         return ClsRegister();
@@ -116,16 +114,17 @@ class MainBody extends StatelessWidget {
         return ClsSelectLanguage();
         break;
       case 'SettingsMain':
-        return
-          StoreProvider(
-            store: gv.storeSettingsMain,
-            child:StoreConnector<int, int>(
-              builder: (BuildContext context, int intTemp) {
-                return ClsSettingsMain(intTemp);
-              }, converter: (Store<int> sintTemp) {
+        return StoreProvider(
+          store: gv.storeSettingsMain,
+          child: StoreConnector<int, int>(
+            builder: (BuildContext context, int intTemp) {
+              return ClsSettingsMain(intTemp);
+            },
+            converter: (Store<int> sintTemp) {
               return sintTemp.state;
-            },),
-          );
+            },
+          ),
+        );
         break;
     }
     return ClsHome();
