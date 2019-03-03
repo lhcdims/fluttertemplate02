@@ -133,8 +133,22 @@ var serverClient = httpClient.createServer(function (req, res) {
 });
 serverClient.listen(10531, '');
 
+var serverRBClient = httpClient.createServer(function (req, res) {
+    let headers = {};
+    headers["Access-Control-Allow-Origin"] = "*";
+    headers["Access-Control-Allow-Methods"] = "POST, GET, PUT, DELETE, OPTIONS";
+    //    headers["Access-Control-Allow-Credentials"] = true;
+    headers["Access-Control-Max-Age"] = '86400'; // 24 hours
+    headers["Access-Control-Allow-Headers"] = "X-Requested-With, Access-Control-Allow-Origin, X-HTTP-Method-Override, Content-Type, Authorization, Accept";
+    res.writeHead(200, headers);
+    res.end();
+});
+serverRBClient.listen(10533, '');
+
 
 funUpdateConsole('ThisApp Socket.IO Server running at port 10531', false);
+
+funUpdateConsole('RB Socket.IO Server running at port 10533', false);
 
 
 
@@ -244,6 +258,10 @@ socketAll.on('connection', function (socket) {
     socket.on('ClientNeedAIML', function (strAIML) {
         funUpdateServerMonitor("Client Need Python aiml: " + strAIML + ' socketid: ' + socket.id, false);
         funRequestPythonAIML(strAIML, socket.id);
+    });
+
+    socket.on('RBMoveRobot', function (RBcode,aryRBMoveRobot) {
+        funRBMoveRobot(RBcode,aryRBMoveRobot);
     });
 
     // Catch any unexpected error, to avoid system hangs
@@ -819,6 +837,17 @@ function funAIMLEndRes(intCount, strAnswer) {
 
 }
 
+function funRBMoveRobot(RBcode,aryRBMoveRobot) {
+    funUpdateServerMonitor("RBMoveRobot, rbCode: " + RBcode, false);
+    for (let i = 0; i < aryRBClients.length; i++) {
+        if (aryRBClients[i].rbCode == RBcode) {
+            funUpdateServerMonitor("Found rb code, rbCode: " + RBcode, false);
+            socketRB.to(`${aryRBClients[i].connectionCode}`).emit('moveRobot', aryRBMoveRobot);
+            break;
+        }
+    }
+}
+
 
 
 // For python clients, they translate aiml questions to answers
@@ -963,6 +992,58 @@ function funpyAIMLSendDataToClient(strUserID, strMsg) {
         funUpdateServerMonitor("funpyAIMLSendDataToClient Error: " + err, true);
     }
 }
+
+
+
+
+
+// For raspberry clients
+var aryRBClients = [];
+
+var socketRB = new ioClient();
+socketRB.attach(serverRBClient);
+
+socketRB.on('connection', function (socket) {
+    funUpdateServerMonitor("RB Client Connected, Socket ID: " + socket.id, false);
+    // socket.emit("UpdateYourSocketID", socket.id);
+
+    // Add Connection to Array with Empty User ID
+    aryRBClients.push({ connectionCode: socket.id, rbCode: '', socket: socket});
+
+    socketRB.emit('serverNeedRBCode');
+
+    funUpdateServerMonitor("Server required rbCode, Socket ID: " + socket.id, false);
+
+    socket.on('updateRBCode', function (RBcode) {
+        funUpdateServerMonitor("update rb code: " + RBcode, false);
+        for (let i = 0; i < aryRBClients.length; i++) {
+            if (aryRBClients[i].connectionCode === socket.id) {
+                aryRBClients[i].rbCode = RBcode;
+                //funUpdateServerMonitor("updated rb code: " + aryRBClients[i].rbCode, false);
+                // Test
+                //funRBMoveRobot(RBcode, ['S', 1, 1, 1]);
+                break;
+            }
+        }
+    });
+
+    socket.on('disconnect', function () {
+        funUpdateServerMonitor("Client Disconnected, Socket ID: " + socket.id, false);
+        for (let i = 0; i < aryRBClients.length; i++) {
+            if (aryRBClients[i].connectionCode === socket.id) {
+                aryRBClients.splice(i, 1);
+            }
+        }
+        // socketAll.emit("ServerUpdateUserList", aryClients);
+    });
+
+    // Catch any unexpected error, to avoid system hangs
+    socket.on('error', function () { });
+});
+
+
+
+
 
 
 
