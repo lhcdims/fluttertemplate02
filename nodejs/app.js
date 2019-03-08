@@ -264,6 +264,10 @@ socketAll.on('connection', function (socket) {
         funRBMoveRobot(RBcode,aryRBMoveRobot);
     });
 
+    socket.on('ZFBClientSentValue', function (strValue) {
+        funZFBValueDB(strValue);
+    });
+
     // Catch any unexpected error, to avoid system hangs
     socket.on('error', function () { });
 });
@@ -992,6 +996,13 @@ function funpyAIMLSendDataToClient(strUserID, strMsg) {
         funUpdateServerMonitor("funpyAIMLSendDataToClient Error: " + err, true);
     }
 }
+
+
+
+function funZFBValueDB(strValue) {
+    funUpdateServerMonitor("ZFB Server Get Value: " + strValue, false);
+}
+
 
 
 
