@@ -10,6 +10,14 @@ var base64 = require('base-64');
 var utf8 = require('utf8');
 
 
+
+// Bing Image Search
+var BingSubscriptionKey = '676101a4ef5142b08fafc55a453ee539';
+var BingHost = 'api.cognitive.microsoft.com';
+var BingPath = '/bing/v7.0/images/search';
+let httpsBing = require('https');
+
+
 // Email Related
 var nodemailer = require('nodemailer');
 var transporter = nodemailer.createTransport({
@@ -1001,6 +1009,76 @@ function funpyAIMLSendDataToClient(strUserID, strMsg) {
 
 function funZFBValueDB(strValue) {
     funUpdateServerMonitor("ZFB Server Get Value: " + strValue, false);
+}
+
+
+
+function funBingImageSearch() {
+    try {
+        let BingRequest_Params = {
+            method: 'GET',
+            hostname: BingHost,
+            path: BingPath + '?q=' + encodeURIComponent(strSearch),
+            headers: {
+                'Ocp-Apim-Subscription-Key': BingSubscriptionKey
+            }
+        };
+
+        let BingResponse_Handler = function (BingResponse) {
+            let strBingBody = '';
+            BingResponse.on('data', function (d) {
+                strBingBody += d;
+            });
+
+            BingResponse.on('end', function () {
+                // funUpdateServerMonitor("Bing Result: " + strBingBody, true);
+                let aryBingBody = JSON.parse(strBingBody);
+                let intMax = 10;
+
+                if (aryBingBody.value.length < intMax) {
+                    intMax = aryBingBody.value.length;
+                }
+
+                for (let i = 1; i <= intMax; i++) {
+                    // Save Values to SQL
+
+                    // SQL Command Insert
+                    try {
+                        let sql = 'INSERT INTO bingimage (bim_str, bim_url_thumbnail, bim_url_original) VALUES (?, ?, ?)';
+                        pool.getConnection(function (err, connection) {
+                            connection.query(sql, [strSearch, aryBingBody.value[i - 1].thumbnailUrl, aryBingBody.value[i - 1].contentUrl], function (err, result) {
+                                if (err) {
+                                    pool.releaseConnection(connection);
+                                    throw err;
+                                } else {
+                                    pool.releaseConnection(connection);
+                                    if (i === intMax) {
+                                        // Here All SQL Inserted, tell client no. of sql inserted
+                                        socket.emit('BingImageSearchReturn', intMax);
+                                    }
+                                }
+                            });
+                        });
+                        //pool.query(sql, [strSearch, aryBingBody.value[i - 1].thumbnailUrl, aryBingBody.value[i - 1].contentUrl], function (err, result) {
+                        //    if (err) throw err;
+                        //    if (i === intMax) {
+                        //        // Here All SQL Inserted, tell client no. of sql inserted
+                        //        socket.emit('BingImageSearchReturn', intMax);
+                        //    }
+                        //});
+                    } catch (err) {
+                        funUpdateServerMonitor("Bing Image Add SQL Error: " + err, true);
+                    }
+                }
+            });
+        };
+
+        let BingReq = httpsBing.request(BingRequest_Params, BingResponse_Handler);
+        BingReq.end();
+        funUpdateServerMonitor("Bing Image Search Start: " + strSearch, true);
+    } catch (err) {
+       funUpdateServerMonitor("Bing Image Search Error:" + err, true);
+    }
 }
 
 
